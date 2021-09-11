@@ -1,6 +1,8 @@
 import java.io.File
+import kotlin.math.round
+import kotlin.math.roundToInt
 
-data class Doc(val content: String, val words: Set<String>) { }
+data class Doc(val content: String, val words: Map<String, Int>) { }
 
 class Loader {
     var stopwords: MutableSet<String> = mutableSetOf();
@@ -26,14 +28,14 @@ class Loader {
             content.split(' ')
                 .filter{ !stopwords.contains(it) }
                 .map { stem(it) }
-                .toSet()
+                .associateWith { 1 }
         )
     }
 }
 
 class Cluster {
     val docs = mutableListOf<Doc>()
-    val words = mutableSetOf<String>()
+    val words = mutableMapOf<String, Int>()
 
     constructor(doc: Doc, wordToCluster: MutableMap<String, MutableSet<Cluster>>) {
         add(doc, wordToCluster)
@@ -46,13 +48,15 @@ class Cluster {
     fun add(doc: Doc, wordToCluster: MutableMap<String, MutableSet<Cluster>>){
         docs.add(doc);
         doc.words.forEach {
-            wordToCluster.getOrPut(it, { mutableSetOf() }).add(this)
-            words.add(it)
+            wordToCluster.getOrPut(it.key, { mutableSetOf() }).add(this)
+            words[it.key] = words.getOrDefault(it.key, 0) + it.value;
         }
     }
 }
 
 class Clusterer {
+    val NEW_CLUSTER_THRESHOLD = 0.7
+
     val clusters = mutableListOf<Cluster>()
     val wordToCluster = mutableMapOf<String, MutableSet<Cluster>>()
 
@@ -60,7 +64,7 @@ class Clusterer {
         var bestCluster: Cluster? = null;
         var bestSimilarity = Double.MIN_VALUE;
         doc.words.forEach { word ->
-            val c = wordToCluster.get(word)?.forEach {
+            val c = wordToCluster.get(word.key)?.forEach {
                 val s = similarity(doc, it)
                 if(s > bestSimilarity){
                     bestSimilarity = s;
@@ -69,18 +73,18 @@ class Clusterer {
             }
         }
 
-        if(bestCluster == null || bestSimilarity < 0.6){
+        if(bestCluster == null || bestSimilarity < NEW_CLUSTER_THRESHOLD){
             clusters.add(Cluster(doc, wordToCluster))
         } else {
             bestCluster!!.add(doc, wordToCluster);
         }
     }
 
-    fun similarity(doc: Doc, cluster: Cluster): Double {
+    private fun similarity(doc: Doc, cluster: Cluster): Double {
         if(doc.words.isEmpty() || cluster.words.isEmpty()) return 0.0
 
-        val smaller: Set<String>
-        val larger: Set<String>
+        val smaller: Map<String, Int>
+        val larger: Map<String, Int>
         if(doc.words.size > cluster.words.size) {
             larger = doc.words
             smaller = cluster.words
@@ -89,21 +93,34 @@ class Clusterer {
             smaller = doc.words
         }
 
-        val numMatching = smaller.count { larger.contains(it) }
-        // TODO: Also consider that some words are more important in a cluster than others
-        // TODO: So the word set in the cluster should be a map<String, Integer>
+        var same = 0;
+        var all = 0;
+        smaller.forEach{
+            if(larger.containsKey(it.key)) {
+                same += larger[it.key]!! + it.value // count from both
+            }
+            all += it.value // only count from smaller
+        }
 
-        return numMatching.toDouble() / larger.size.toDouble();
+        larger.forEach{
+            all += it.value // only count from larger
+        }
+
+        return same.toDouble() / all.toDouble()
     }
 }
 
 fun main() {
+
     println("Start")
+    val start = System.currentTimeMillis();
     val loader = Loader();
+    val afterLoad = System.currentTimeMillis();
     val clusterer = Clusterer();
-    loader.docs.take(10000).forEach {
+    loader.docs.take(100 * 1000).forEach {
         clusterer.addDoc(it)
     }
+    val afterCluster = System.currentTimeMillis();
 
     clusterer.clusters.filter { it.docs.size > 2 }
                       .sortedBy { it.docs.size }
@@ -111,5 +128,10 @@ fun main() {
                           it.docs.forEach { println(it.content) };
                           println()
                       }
-    println(clusterer.clusters.size)
+    val afterPrint = System.currentTimeMillis();
+
+    println("Created ${clusterer.clusters.size} clusters")
+    println("Loading    ${afterLoad - start}ms")
+    println("Clustering ${afterCluster - afterLoad}ms / ${(loader.docs.size.toDouble() / ((afterCluster - afterLoad) / 1000.0)).roundToInt()/1000}K documents/s")
+    println("Print      ${afterPrint - afterCluster}ms")
 }
