@@ -1,4 +1,5 @@
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Attribute
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.parser.Tag
@@ -6,6 +7,12 @@ import org.jsoup.parser.Tag
 data class Article (val header: String, val text: String, val url: String)
 
 class MainPage {
+    fun String.normalizeUrl(base_url: String): String{
+        if(this.startsWith(base_url)) return this;
+        val separator = if(this.startsWith("/") || base_url.endsWith("/")) "" else "/"
+        return base_url + separator + this
+    }
+
     fun Tag.isHeadline(): Boolean {
         val name = this.normalName()
         if(name == "h1" || name == "h2" || name == "h3") return true
@@ -16,7 +23,7 @@ class MainPage {
         val result = arrayListOf<Article>()
         val links = document.getElementsByTag("a")
         for(link in links){
-            val url = link.attr("href")
+            val url = link.attr("href").normalizeUrl(base_url)
 
             if(url.length - base_url.length < 25) continue
 
@@ -52,21 +59,41 @@ class MainPage {
         return result
     }
 
+    fun getLongLinks(document: Document, base_url: String): List<Article>{
+        return document.getElementsByTag("a")
+            .filter { it.text().length > 50 && it.attr("href").normalizeUrl(base_url).length > base_url.length + 40 }
+            .map {
+                val titles = it.attributes().filter { it.key.contains("title") }.map(Attribute::value)
+                val title = if(titles.size == 1) titles.first() else it.text()
+                Article(title, it.text(), it.attr("href").normalizeUrl(base_url))
+            }
+    }
+
     fun extract(url: String): List<Article>{
         val doc = Jsoup.connect(url).get()
-        // article tags
-        // a with long title
-        // a with long content
-        return getLinkHeadlines(doc, url)
+
+        // MAYBE article tags
+
+        var result = getLinkHeadlines(doc, url)
             .filter { it.text.length > 20 }
             .distinct()
+
+        if(result.size < 10) {
+            result = getLongLinks(doc, url)
+        }
+
+        if(result.size < 10) {
+            println("Only ${result.size} articles for $url")
+        }
+
+        return result
     }
 }
 
 fun main() {
     val page = MainPage();
     
-    val urls = listOf<String>(
+    val urls = listOf(
         "https://www.spiegel.de/",
         "https://www.tagesschau.de/",
         "https://www.bild.de/",
@@ -85,12 +112,9 @@ fun main() {
     val articles = mutableListOf<Article>()
 
     urls.map { url ->
-        println(url)
-        page.extract(url).map {
-            articles.add(it)
-            println(it)
-        }
-        println("#####################################")
+        val found = page.extract(url)
+        println("Found ${found.size} for $url")
+        found.forEach { articles.add(it) }
     }
 
     println(articles.distinct().size)
