@@ -96,12 +96,11 @@ class Clusterer {
         var all = 0
         smaller.forEach{
             if(larger.containsKey(it.key)) same += larger[it.key]!! + it.value
-            all += it.value // only count from smaller
-            // count from both
+            all += it.value
         }
 
         larger.forEach{
-            all += it.value // only count from larger
+            all += it.value
         }
 
         return same.toDouble() / all.toDouble()
@@ -109,17 +108,20 @@ class Clusterer {
 }
 
 fun main() {
-
-    println("Start")
     val start = System.currentTimeMillis()
+
+    println("Load")
     val loader = Loader()
     val afterLoad = System.currentTimeMillis()
+
+    println("Cluster")
     val clusterer = Clusterer()
     loader.docs.take(100 * 1000).forEach {
         clusterer.addDoc(it)
     }
     val afterCluster = System.currentTimeMillis()
 
+    println("Print")
     clusterer.clusters.filter { it.docs.size > 2 }
                       .sortedBy { it.docs.size }
                       .forEach { cluster ->
@@ -128,6 +130,7 @@ fun main() {
                       }
     val afterPrint = System.currentTimeMillis()
 
+    println("Statistics")
     println("Created ${clusterer.clusters.size} clusters")
     println("Loading    ${afterLoad - start}ms")
     println("Clustering ${afterCluster - afterLoad}ms / ${(loader.docs.size.toDouble() / ((afterCluster - afterLoad) / 1000.0)).roundToInt()/1000}K documents/s")
