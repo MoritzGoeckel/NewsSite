@@ -54,13 +54,14 @@ fun main() {
         //println(it.header)
         //println(words)
 
-        clusterer.addDoc(Doc(text, words))
+        clusterer.addDoc(Doc(text + " " + it.url, words))
     }
 
     val afterCluster = System.currentTimeMillis()
 
     println("Print")
     clusterer.clusters.filter { it.docs.size > 2 }
+            // TODO: only show clusters with more than one source url
         .sortedBy { it.docs.size }
         .forEach { cluster ->
             cluster.docs.forEach { println(it.content) }

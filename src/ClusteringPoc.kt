@@ -54,7 +54,7 @@ class Cluster(doc: Doc, wordToCluster: MutableMap<String, MutableSet<Cluster>>) 
 }
 
 class Clusterer {
-    private val clusterCreationThreshold = 0.5
+    private val clusterCreationThreshold = 0.4
 
     val clusters = mutableListOf<Cluster>()
     private val wordToCluster = mutableMapOf<String, MutableSet<Cluster>>()
