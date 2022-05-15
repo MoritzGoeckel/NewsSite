@@ -1,5 +1,5 @@
-import crawler.MainPage
-import parsers.TextProcessor
+import parsers.MainPage
+import processors.TextProcessor
 import structures.Article
 import structures.Language
 import java.io.File
@@ -7,10 +7,7 @@ import kotlin.math.roundToInt
 
 fun main() {
     val start = System.currentTimeMillis()
-
     val page = MainPage();
-
-
     val articles = mutableListOf<Article>()
 
     for (url in File("data\\pages\\de.txt").readLines()) {
@@ -28,11 +25,7 @@ fun main() {
     val processor = TextProcessor(Language.DE)
 
     articles.forEach {
-        // TODO this is special normalizing logic
-        var text = it.header.replace("in einem neuen Fenster öffnen", "")
-        if(text.startsWith("Video ")) text = text.removePrefix("Video ")
-
-        clusterer.addDoc(processor.makeWords(text))
+        processor.makeWords(it.header)?.let { validWords -> clusterer.addDoc(validWords) }
     }
 
     val afterCluster = System.currentTimeMillis()

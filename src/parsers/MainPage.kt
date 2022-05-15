@@ -1,4 +1,4 @@
-package crawler
+package parsers
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Attribute
@@ -97,6 +97,8 @@ fun main() {
     for (url in File("data\\pages\\de.txt").readLines()) {
         val found = page.extract(url)
         println("Found ${found.size} for $url")
+        found.map { println(it.header) }
+        println()
         articles.addAll(found)
     }
 

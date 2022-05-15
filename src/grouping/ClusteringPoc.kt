@@ -1,4 +1,4 @@
-import parsers.TextProcessor
+import processors.TextProcessor
 import structures.Language
 import structures.Words
 import java.io.File
@@ -10,7 +10,7 @@ class Loader {
     init {
         val processor = TextProcessor(Language.EN)
         File("data\\samples\\abcnews-date-text.csv").forEachLine {
-            docs.add(processor.makeWords(it.split(',')[1]))
+            processor.makeWords(it.split(',')[1])?.let { validWords -> docs.add(validWords) }
         }
     }
 }

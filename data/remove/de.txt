@@ -1,0 +1,5 @@
+in einem neuen fenster öffnen
+^(zu(m|r)\s)?(artikel|video|übersicht|audio)(\:|\s[^\:]{0,10}\:)
+laufzeit \d* minute(n)? \d* sekunde(n)?
+dpa-AFX-Überblick\:
+zum video

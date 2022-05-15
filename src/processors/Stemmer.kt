@@ -1,4 +1,4 @@
-package parsers
+package processors
 
 import structures.Language
 

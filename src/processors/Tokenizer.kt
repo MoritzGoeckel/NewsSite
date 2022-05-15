@@ -1,4 +1,4 @@
-package parsers
+package processors
 
 class Tokenizer{
     fun tokenize(text: String): List<String>{
