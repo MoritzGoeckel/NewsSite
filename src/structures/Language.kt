@@ -2,7 +2,7 @@ package structures
 
 public enum class Language {DE, EN, NONE}
 
-fun Language.toString(): String {
+fun Language.folderName(): String {
     if(this == Language.DE){
         return "de";
     }

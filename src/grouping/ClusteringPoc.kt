@@ -10,44 +10,47 @@ class Loader {
     init {
         val processor = TextProcessor(Language.EN)
         File("data\\samples\\abcnews-date-text.csv").forEachLine {
-            processor.makeWords(it.split(',')[1])?.let { validWords -> docs.add(validWords) }
+            val words = processor.makeWords(it.split(',')[1])
+            if(words.isNotEmpty()) {
+                docs.add(words)
+            }
         }
     }
 }
 
-class Cluster(words: Words, wordToCluster: MutableMap<String, MutableSet<Cluster>>) {
-    val docs = mutableListOf<Words>()
+class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<String, MutableSet<Cluster<DocType>>>) {
+    val docs = mutableListOf<DocType>()
     val words = mutableMapOf<String, Int>()
 
     init {
-        add(words, wordToCluster)
+        add(newDocs, wordToCluster)
     }
 
     override fun toString(): String{
         return docs.toString()
     }
 
-    fun add(words: Words, wordToCluster: MutableMap<String, MutableSet<Cluster>>){
-        docs.add(words)
-        words.words.forEach {
+    fun add(newDocs: DocType, wordToCluster: MutableMap<String, MutableSet<Cluster<DocType>>>){
+        docs.add(newDocs)
+        newDocs.words.forEach {
             wordToCluster.getOrPut(it.key, { mutableSetOf() }).add(this)
             this.words[it.key] = this.words.getOrDefault(it.key, 0) + it.value
         }
     }
 }
 
-class Clusterer {
+class Clusterer<DocType : Words> {
     private val clusterCreationThreshold = 0.4
 
-    val clusters = mutableListOf<Cluster>()
-    private val wordToCluster = mutableMapOf<String, MutableSet<Cluster>>()
+    val clusters = mutableListOf<Cluster<DocType>>()
+    private val wordToCluster = mutableMapOf<String, MutableSet<Cluster<DocType>>>()
 
-    fun addDoc(words: Words){
-        var bestCluster: Cluster? = null
+    fun addDoc(docs: DocType){
+        var bestCluster: Cluster<DocType>? = null
         var bestSimilarity = Double.MIN_VALUE
-        words.words.forEach { word ->
+        docs.words.forEach { word ->
             wordToCluster[word.key]?.forEach {
-                val s = similarity(words, it)
+                val s = similarity(docs, it)
                 if(s > bestSimilarity){
                     bestSimilarity = s
                     bestCluster = it
@@ -56,23 +59,23 @@ class Clusterer {
         }
 
         if(bestCluster == null || bestSimilarity < clusterCreationThreshold){
-            clusters.add(Cluster(words, wordToCluster))
+            clusters.add(Cluster(docs, wordToCluster))
         } else {
-            bestCluster!!.add(words, wordToCluster)
+            bestCluster!!.add(docs, wordToCluster)
         }
     }
 
-    private fun similarity(words: Words, cluster: Cluster): Double {
-        if(words.words.isEmpty() || cluster.words.isEmpty()) return 0.0
+    private fun similarity(docs: DocType, cluster: Cluster<DocType>): Double {
+        if(docs.words.isEmpty() || cluster.words.isEmpty()) return 0.0
 
         val smaller: Map<String, Int>
         val larger: Map<String, Int>
-        if(words.words.size > cluster.words.size) {
-            larger = words.words
+        if(docs.words.size > cluster.words.size) {
+            larger = docs.words
             smaller = cluster.words
         } else {
             larger = cluster.words
-            smaller = words.words
+            smaller = docs.words
         }
 
         var same = 0
@@ -98,7 +101,7 @@ fun main() {
     val afterLoad = System.currentTimeMillis()
 
     println("Cluster")
-    val clusterer = Clusterer()
+    val clusterer = Clusterer<Words>()
     loader.docs.take(100 * 1000).forEach {
         clusterer.addDoc(it)
     }
@@ -108,7 +111,7 @@ fun main() {
     clusterer.clusters.filter { it.docs.size > 2 }
                       .sortedBy { it.docs.size }
                       .forEach { cluster ->
-                          cluster.docs.forEach { println(it.content) }
+                          cluster.docs.forEach { println(it.text) }
                           println()
                       }
     val afterPrint = System.currentTimeMillis()

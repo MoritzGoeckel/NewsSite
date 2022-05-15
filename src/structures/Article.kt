@@ -1,3 +1,8 @@
 package structures
 
-data class Article (val header: String, val text: String, val url: String)
+import processors.TextProcessor
+
+class Article(val header: String, val content: String, val url: String, val source: String, words: Words): Words(words.text, words.words) {
+    constructor(header: String, content: String, url: String, source: String): this(header, content, url, source, Words())
+    constructor(header: String, content: String, url: String, source: String, processor: TextProcessor): this(header, content, url, source, processor.makeWords(header))
+}

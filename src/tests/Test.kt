@@ -2,12 +2,15 @@ import parsers.MainPage
 import processors.TextProcessor
 import structures.Article
 import structures.Language
+import structures.Words
 import java.io.File
 import kotlin.math.roundToInt
 
 fun main() {
+    val processor = TextProcessor(Language.DE)
+
     val start = System.currentTimeMillis()
-    val page = MainPage();
+    val page = MainPage(processor);
     val articles = mutableListOf<Article>()
 
     for (url in File("data\\pages\\de.txt").readLines()) {
@@ -21,21 +24,20 @@ fun main() {
     val afterDownload = System.currentTimeMillis()
 
     println("Cluster")
-    val clusterer = Clusterer()
-    val processor = TextProcessor(Language.DE)
+    val clusterer = Clusterer<Article>()
 
-    articles.forEach {
-        processor.makeWords(it.header)?.let { validWords -> clusterer.addDoc(validWords) }
-    }
+    articles.filter { it.isNotEmpty() }
+        .forEach { clusterer.addDoc(it) }
 
     val afterCluster = System.currentTimeMillis()
 
     println("Print")
     clusterer.clusters.filter { it.docs.size > 2 }
-            // TODO: only show clusters with more than one source url
-        .sortedBy { it.docs.size }
+        .filter { it.docs.distinctBy { it.source }.size > 2 }
+        .sortedBy { it.docs.distinctBy { it.source }.size }
+        //.sortedBy { it.docs.size }
         .forEach { cluster ->
-            cluster.docs.forEach { println(it.content + " -> " + it.words) }
+            cluster.docs.forEach { println(it.text + " -> " + it.words + " " + it.source) }
             println()
         }
 

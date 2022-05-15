@@ -4,10 +4,13 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Attribute
 import org.jsoup.nodes.Document
 import org.jsoup.parser.Tag
+import processors.TextProcessor
 import structures.Article
+import structures.Language
 import java.io.File
 
-class MainPage {
+class MainPage(private val textProcessor: TextProcessor) {
+
     fun String.normalizeUrl(base_url: String): String{
         if(this.startsWith(base_url)) return this;
         val separator = if(this.startsWith("/") || base_url.endsWith("/")) "" else "/"
@@ -30,19 +33,19 @@ class MainPage {
 
             val h1s = link.getElementsByTag("h1")
             if(!h1s.isEmpty()) {
-                result.add(Article(h1s.first().text(), link.text(), url))
+                result.add(Article(h1s.first().text(), link.text(), url, base_url, textProcessor))
                 continue
             }
 
             val h2s = link.getElementsByTag("h2")
             if(!h2s.isEmpty()) {
-                result.add(Article(h2s.first().text(), link.text(), url))
+                result.add(Article(h2s.first().text(), link.text(), url, base_url, textProcessor))
                 continue
             }
 
             val h3s = link.getElementsByTag("h3")
             if(!h3s.isEmpty()) {
-                result.add(Article(h3s.first().text(), link.text(), url))
+                result.add(Article(h3s.first().text(), link.text(), url, base_url, textProcessor))
                 continue
             }
 
@@ -52,7 +55,7 @@ class MainPage {
                 node = node.parent()
                 ++i
                 if(node.tag().isHeadline()){
-                    result.add(Article(node.text(), node.text(), url))
+                    result.add(Article(node.text(), node.text(), url, base_url, textProcessor))
                     break
                 }
             }
@@ -66,7 +69,7 @@ class MainPage {
             .map {
                 val titles = it.attributes().filter { it.key.contains("title") }.map(Attribute::value)
                 val title = if(titles.size == 1) titles.first() else it.text()
-                Article(title, it.text(), it.attr("href").normalizeUrl(base_url))
+                Article(title, it.text(), it.attr("href").normalizeUrl(base_url), base_url, textProcessor)
             }
     }
 
@@ -76,7 +79,7 @@ class MainPage {
         // MAYBE article tags
 
         var result = getLinkHeadlines(doc, url)
-            .filter { it.text.length > 20 }
+            .filter { it.content.length > 20 }
             .distinct()
 
         if(result.size < 10) {
@@ -92,7 +95,7 @@ class MainPage {
 }
 
 fun main() {
-    val page = MainPage();
+    val page = MainPage(TextProcessor(Language.DE));
     val articles = mutableListOf<Article>()
     for (url in File("data\\pages\\de.txt").readLines()) {
         val found = page.extract(url)

@@ -17,7 +17,7 @@ class Discarder(private val language: Language) {
     fun shouldDiscard(text: String): Boolean {
         for(f in filter) {
             if(text.contains(f)) {
-                println(text + " -> discard") // TODO
+                // println(text + " -> discard")
                 return true;
             }
         }

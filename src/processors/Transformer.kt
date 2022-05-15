@@ -27,8 +27,6 @@ class Transformer(private var language: Language) {
             readLineConfig("remove", language)
                 .map { Action(Regex(it.removeSuffix("END"), options)) }
         )
-
-        transformations.forEach{println(it)};
     }
 
     fun apply(text: String): String {
@@ -42,9 +40,9 @@ class Transformer(private var language: Language) {
             result = apply(result);
         }
 
-        if(text != result){
+        /*if(text != result){
             println(text + " -> " + result)
-        }
+        }*/
 
         return result
     }

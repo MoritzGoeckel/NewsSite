@@ -11,9 +11,9 @@ class TextProcessor(private var language: Language) {
     private var transformer = processors.Transformer(language);
     private var discarder = processors.Discarder(language);
 
-    fun makeWords(text: String): Words? {
+    fun makeWords(text: String): Words {
         if(discarder.shouldDiscard(text)){
-            return null;
+            return Words();
         }
 
         // apply transformations

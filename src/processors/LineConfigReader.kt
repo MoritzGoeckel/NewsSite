@@ -1,29 +1,30 @@
 package processors
 
 import structures.Language
+import structures.folderName
 import java.io.File
 
 fun readLineConfig(path: String, language: Language): List<String> {
-    var result = mutableListOf<String>()
+    val result = mutableListOf<String>()
 
     // Global
-    var globalFile = File("""data\${path}\global.txt""")
+    val globalFile = File("""data\${path}\global.txt""")
     if(globalFile.exists()) {
         globalFile.readLines()
             .filter { it.isNotEmpty() }
             .forEach { result.add(it) }
     } else {
-        // throw Exception("Could not find file $file")
+        println("Could not find file $globalFile")
     }
 
     // Language specific
-    val localFile = File("""data\${path}\${language}.txt""")
+    val localFile = File("""data\${path}\${language.folderName()}.txt""")
     if(localFile.exists()) {
         localFile.readLines()
             .filter { it.isNotEmpty() }
             .forEach { result.add(it) }
     } else {
-        // throw Exception("Could not find file $file")
+        println("Could not find file $localFile")
     }
 
     return result
