@@ -68,3 +68,4 @@ outTmp/
 /test.output
 /kotlin-native/dist
 lib/*
+target/

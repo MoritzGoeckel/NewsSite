@@ -1,0 +1,38 @@
+body {
+    background-color: #fff1e5;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: normal;
+}
+
+h1,h2,h3 {
+    font-family: Constantia;
+    font-weight: bold;
+}
+
+#outer {
+    max-width: 1012px;
+    margin-top: 3rem;
+}
+
+#title {
+    width: 100%;
+    padding-left: 3rem;
+    padding-right: 3rem;
+    padding-bottom: 1rem;
+    text-align: center;
+}
+
+.row {
+    min-height: 5rem;
+    margin-top: 2rem
+}
+
+.row h2 {
+    font-family: 'Open Sans';
+    font-size: large;
+}
+
+#articles .row a {
+    color: darkgray;
+    text-decoration: none;
+}

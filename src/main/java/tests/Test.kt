@@ -1,5 +1,6 @@
 import parsers.MainPage
 import processors.TextProcessor
+import server.WebServer
 import structures.Article
 import structures.Language
 import structures.Words
@@ -31,15 +32,16 @@ fun main() {
 
     val afterCluster = System.currentTimeMillis()
 
-    println("Print")
-    clusterer.clusters.filter { it.docs.size > 2 }
+    // Sort clusters
+    val clusters = clusterer.clusters.filter { it.docs.size > 2 }
         .filter { it.docs.distinctBy { it.source }.size > 2 }
         .sortedBy { it.docs.distinctBy { it.source }.size }
-        //.sortedBy { it.docs.size }
-        .forEach { cluster ->
-            cluster.docs.forEach { println(it.text + " -> " + it.words + " " + it.source) }
-            println()
-        }
+
+    // Print clusters
+    clusters.forEach { cluster ->
+        cluster.docs.forEach { println(it.text + " -> " + it.words + " " + it.source) }
+        println()
+    }
 
     val afterPrint = System.currentTimeMillis()
 
@@ -48,4 +50,9 @@ fun main() {
     println("Loading    ${afterDownload - start}ms")
     println("Clustering ${afterCluster - afterDownload}ms / ${(articles.size.toDouble() / ((afterCluster - afterDownload) / 1000.0)).roundToInt()/1000}K documents/s")
     println("Print      ${afterPrint - afterCluster}ms")
+
+    val server = WebServer()
+    server.clusters = clusters
+    server.start()
+    println("After start")
 }
