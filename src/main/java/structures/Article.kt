@@ -2,6 +2,7 @@ package structures
 
 import com.google.gson.JsonObject
 import processors.TextProcessor
+import processors.getBaseUrl
 
 class Article(val header: String, val content: String, val url: String, val source: String, words: Words): Words(words.text, words.words) {
     constructor(header: String, content: String, url: String, source: String): this(header, content, url, source, Words())
@@ -9,10 +10,10 @@ class Article(val header: String, val content: String, val url: String, val sour
 
     fun toJson(): JsonObject{
         val result = JsonObject()
-        result.addProperty("header", header)
+        result.addProperty("header", text)
         result.addProperty("content", content)
         result.addProperty("url", url)
-        result.addProperty("source", source)
+        result.addProperty("source", getBaseUrl(source))
         return result
     }
 }

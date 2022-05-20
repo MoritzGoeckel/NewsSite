@@ -1,13 +1,14 @@
 package parsers
 
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Attribute
-import org.jsoup.nodes.Document
+import org.jsoup.nodes.*
 import org.jsoup.parser.Tag
+import org.jsoup.select.NodeVisitor
 import processors.TextProcessor
 import structures.Article
 import structures.Language
 import java.io.File
+import kotlin.reflect.typeOf
 
 class MainPage(private val textProcessor: TextProcessor) {
 
@@ -21,6 +22,22 @@ class MainPage(private val textProcessor: TextProcessor) {
         val name = this.normalName()
         if(name == "h1" || name == "h2" || name == "h3") return true
         return false
+    }
+
+    class TextNodesCollector : NodeVisitor{
+        val strings: MutableList<String> = mutableListOf()
+        override fun head(node: Node?, depth: Int) {
+            if(node != null && node is TextNode && node.text().isNotEmpty()){
+                strings.add(node.text())
+            }
+        }
+        override fun tail(node: Node?, depth: Int) { }
+    }
+
+    fun getTexts(element: Element): List<String>{
+        val visitor = TextNodesCollector ()
+        element.traverse(visitor)
+        return visitor.strings
     }
 
     fun getLinkHeadlines(document: Document, base_url: String): List<Article>{
@@ -55,7 +72,12 @@ class MainPage(private val textProcessor: TextProcessor) {
                 node = node.parent()
                 ++i
                 if(node.tag().isHeadline()){
-                    result.add(Article(node.text(), node.text(), url, base_url, textProcessor))
+                    val texts = getTexts(node);
+                    // TODO support multiple text fields
+                    val text = texts.maxByOrNull { it.length }
+                    if(text != null) {
+                        result.add(Article(text, text, url, base_url, textProcessor))
+                    }
                     break
                 }
             }

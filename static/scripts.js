@@ -20,8 +20,8 @@ const addRow = (clusters, index) => {
     let rowDiv = document.createElement("div");
     rowDiv.className = "row"
 
-    numColumnsTable = [2, 3, 4]
-    numColumns = index < 3 ? numColumnsTable[index] : 4
+    numColumnsTable = [2, 3, 4, 3, 2, 3, 4, 3, 4, 2, 3, 4, 2]
+    numColumns = numColumnsTable[index % numColumnsTable.length]
 
     for(i = 0; i < numColumns && clusters.length > 0; ++i) {
         bootstrapColumns = 12 / numColumns
@@ -41,8 +41,10 @@ const addRow = (clusters, index) => {
 
 const requestArticles = async () => {
     const response = await fetch('clusters.json');
-    const result = await response.json();
+    let result = await response.json();
     console.log(result)
+
+    result = result.reverse()
 
     let i = 0
     while(result.length > 0){

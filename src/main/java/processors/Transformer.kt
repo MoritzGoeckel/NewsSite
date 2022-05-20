@@ -40,10 +40,6 @@ class Transformer(private var language: Language) {
             result = apply(result);
         }
 
-        /*if(text != result){
-            println(text + " -> " + result)
-        }*/
-
         return result
     }
 }

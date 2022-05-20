@@ -34,7 +34,7 @@ fun main() {
 
     // Sort clusters
     val clusters = clusterer.clusters.filter { it.docs.size > 2 }
-        .filter { it.docs.distinctBy { it.source }.size > 2 }
+        .filter { it.docs.distinctBy { it.source }.size >= 2 }
         .sortedBy { it.docs.distinctBy { it.source }.size }
 
     // Print clusters
@@ -51,6 +51,7 @@ fun main() {
     println("Clustering ${afterCluster - afterDownload}ms / ${(articles.size.toDouble() / ((afterCluster - afterDownload) / 1000.0)).roundToInt()/1000}K documents/s")
     println("Print      ${afterPrint - afterCluster}ms")
 
+    // Start server
     val server = WebServer()
     server.clusters = clusters
     server.start()

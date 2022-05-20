@@ -20,7 +20,7 @@ class TextProcessor(private var language: Language) {
         val transformed = transformer.apply(text)
 
         // tokenize
-        var result = tokenizer.tokenize(transformed )
+        var result = tokenizer.tokenize(transformed)
 
         // stem
         result = stemmer.stem(result)

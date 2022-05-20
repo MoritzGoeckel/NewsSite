@@ -4,6 +4,10 @@ body {
     font-weight: normal;
 }
 
+h1 {
+    font-size: 3rem;
+}
+
 h1,h2,h3 {
     font-family: Constantia;
     font-weight: bold;
@@ -33,6 +37,6 @@ h1,h2,h3 {
 }
 
 #articles .row a {
-    color: darkgray;
+    color: #990f3d;
     text-decoration: none;
 }
