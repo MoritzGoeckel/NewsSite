@@ -9,8 +9,9 @@ const createColumn = (cluster, bootstrapColumns) => {
 
     // Source
     let a = document.createElement("a")
-    a.setAttribute("href", cluster.articles[0].url)
-    a.appendChild(document.createTextNode(cluster.articles[0].source))
+    let article = cluster.representative
+    a.setAttribute("href", article.url)
+    a.appendChild(document.createTextNode(article.source))
     columnDiv.appendChild(a)
 
     // More

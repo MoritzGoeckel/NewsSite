@@ -45,9 +45,14 @@ class WebServer {
                 val clusterJson = JsonObject()
                 //clusterJson.addProperty("")
 
+                // all articles
                 val docs = JsonArray()
                 cluster.docs.map { doc -> doc.toJson() }.forEach { docJson -> docs.add(docJson) }
                 clusterJson.add("articles", docs)
+
+                // representative article
+                clusterJson.add("representative", cluster.mostRepresentativeDoc().toJson())
+
                 clusterJson
             } .forEach { clusterJson -> root.add(clusterJson) }
 

@@ -40,6 +40,7 @@ fun main() {
     // Print clusters
     clusters.forEach { cluster ->
         cluster.docs.forEach { println(it.text + " -> " + it.words + " " + it.source) }
+        println("""Representative -> ${cluster.mostRepresentativeDoc().text}""")
         println()
     }
 

@@ -55,6 +55,10 @@ class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<Strin
                 (word, _) -> wordToCluster[word]!!.remove(this) // We know the word existed before
         }
     }
+
+    fun mostRepresentativeDoc(): DocType{
+        return docs.maxByOrNull { it.similarity(words) }!!
+    }
 }
 
 private fun Words.similarity(other: Words): Double {
