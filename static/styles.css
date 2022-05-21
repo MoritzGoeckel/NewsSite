@@ -4,18 +4,33 @@ body {
     font-weight: normal;
 }
 
-h1 {
-    font-size: 3rem;
+#articles {
 }
 
-h1,h2,h3 {
+h1 {
+    font-size: 3.5rem;
+    text-transform: uppercase;
+}
+
+h1,h2,h3,h4 {
     font-family: Constantia;
     font-weight: bold;
 }
 
 #outer {
-    max-width: 1012px;
-    margin-top: 3rem;
+    max-width: 1260px;
+    margin-top: 2rem;
+}
+
+
+.row:nth-of-type(n+2) {
+    border-top: solid 1px #e6d9ce;
+}
+
+.col-sm-4:nth-of-type(n+2),
+.col-sm-8:nth-of-type(n+2),
+.col-sm-3:nth-of-type(n+2) {
+    border-left: solid 1px #e6d9ce;
 }
 
 #title {
@@ -23,20 +38,50 @@ h1,h2,h3 {
     padding-left: 3rem;
     padding-right: 3rem;
     padding-bottom: 1rem;
+    padding-top: 1rem;
     text-align: center;
+    border-bottom: dotted 2px black;
 }
 
 .row {
     min-height: 5rem;
-    margin-top: 2rem
+    padding-top: 2rem;
+    padding-bottom: 2rem;
 }
 
 .row h2 {
-    font-family: 'Open Sans';
-    font-size: large;
+    font-size: 32px;
+}
+
+.row h3 {
+    font-size: 22px;
+}
+
+.row h4 {
+    font-size: 22px;
+}
+
+.headlineImage {
+    background-size: cover;
+    width: auto;
+    height: 8rem;
+    margin-bottom: 1rem;
 }
 
 #articles .row a {
     color: #990f3d;
     text-decoration: none;
+}
+
+.description {
+    text-align: justify;
+    margin-bottom: 0.5rem;
+}
+
+#footer {
+    border-top: dotted 2px black;
+    width: 100%;
+    height: 3rem;
+    margin-bottom: 2rem;
+    margin-top: 1rem;
 }

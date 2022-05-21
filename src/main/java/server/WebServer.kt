@@ -15,6 +15,7 @@ class WebServer {
     val basePath = "static\\"
 
     private fun loadFile(name: String) = File("""${basePath}\${name}""").readText()
+    private fun loadBytes(name: String) = File("""${basePath}\${name}""").readBytes()
 
     var clusters: List<Cluster<Article>> = listOf()
 
@@ -39,6 +40,12 @@ class WebServer {
             )
         }
 
+        app.get("/favicon.png") {
+            it.contentType(ContentType.IMAGE_PNG).result(
+                loadBytes("favicon.png")
+            )
+        }
+
         app.get("/clusters.json") {
             val root = JsonArray()
             clusters.map { cluster ->
@@ -60,6 +67,7 @@ class WebServer {
         }
 
         app.start(7000)
+        println("Server running on http://localhost:7000/")
     }
 }
 

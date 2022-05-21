@@ -1,3 +1,4 @@
+import parsers.ArticlePage
 import parsers.MainPage
 import processors.TextProcessor
 import server.WebServer
@@ -37,10 +38,24 @@ fun main() {
         .filter { it.docs.distinctBy { it.source }.size >= 2 }
         .sortedBy { it.docs.distinctBy { it.source }.size }
 
+    // Download details for representative doc of top 10 clusters
+    val articleParser = ArticlePage()
+    clusters.filter { it.docs.size >= 3 }
+        .takeLast(50 /* max */)
+        .forEach {
+            try {
+                it.mostRepresentativeDoc().details = articleParser.extract(it.mostRepresentativeDoc().url)
+            } catch (e: Exception) {
+                println("Can't download details for ${it.mostRepresentativeDoc().url}")
+            }
+        }
+
+    val afterDetails = System.currentTimeMillis()
+
     // Print clusters
     clusters.forEach { cluster ->
         cluster.docs.forEach { println(it.text + " -> " + it.words + " " + it.source) }
-        println("""Representative -> ${cluster.mostRepresentativeDoc().text}""")
+        println("""Representative -> ${cluster.mostRepresentativeDoc().toJson()}""")
         println()
     }
 
@@ -50,7 +65,8 @@ fun main() {
     println("Created ${clusterer.clusters.size} clusters")
     println("Loading    ${afterDownload - start}ms")
     println("Clustering ${afterCluster - afterDownload}ms / ${(articles.size.toDouble() / ((afterCluster - afterDownload) / 1000.0)).roundToInt()/1000}K documents/s")
-    println("Print      ${afterPrint - afterCluster}ms")
+    println("Details    ${afterDetails - afterCluster}ms")
+    println("Print      ${afterPrint - afterDetails}ms")
 
     // Start server
     val server = WebServer()

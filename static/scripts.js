@@ -1,23 +1,66 @@
+const shorten = (text, length) => {
+    if(text.length <= length) return text;
+
+    return text.substring(0, length - 3) + "...";
+}
+
 const createColumn = (cluster, bootstrapColumns) => {
     let columnDiv = document.createElement("div");
     columnDiv.className = "col-sm-" + bootstrapColumns
 
+    let article = cluster.representative
+
+    console.log(article)
+
+    let hlType = "h2"
+    if(bootstrapColumns >= 8){
+        hlType = "h2"
+    } else if (bootstrapColumns >= 4){
+        hlType = "h3"
+    } else {
+        hlType = "h4"
+    }
+
+    if (bootstrapColumns == 3 && article.details != undefined) {
+        let details = document.createElement("div")
+        details.className = "headlineImage"
+        details.style = "background-image: url(" + article.details.image + ")"
+
+        columnDiv.appendChild(details)
+    }
+
     // Headline
-    let hl = document.createElement("h2")
-    hl.appendChild(document.createTextNode(cluster.articles[0].header))
+    let hl = document.createElement(hlType)
+    hl.appendChild(document.createTextNode(article.header))
     columnDiv.appendChild(hl)
 
+    if(bootstrapColumns >= 4 && article.details != undefined){
+        let details = document.createElement("div")
+        details.className = "description"
+
+        details.appendChild(
+            document.createTextNode(
+                shorten(article.details.description, bootstrapColumns >= 8 ? 300 : 150)
+            )
+        )
+
+        columnDiv.appendChild(details)
+    }
+
     // Source
+    let sourceSpan = document.createElement("span")
+
     let a = document.createElement("a")
-    let article = cluster.representative
     a.setAttribute("href", article.url)
     a.appendChild(document.createTextNode(article.source))
-    columnDiv.appendChild(a)
+    sourceSpan.appendChild(a)
 
     // More
     let num = document.createElement("span")
     num.appendChild(document.createTextNode(" +" + (cluster.articles.length - 1)))
-    columnDiv.appendChild(num)
+    sourceSpan.appendChild(num)
+
+    columnDiv.appendChild(sourceSpan)
 
     return columnDiv
 }
@@ -26,7 +69,7 @@ const addRow = (clusters, index) => {
     let rowDiv = document.createElement("div");
     rowDiv.className = "row"
 
-    numColumnsTable = [2, 3, 4, 3, 2, 3, 4, 3, 4, 2, 3, 4, 2]
+    numColumnsTable = [2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2]
     numColumns = numColumnsTable[index % numColumnsTable.length]
 
     for(i = 0; i < numColumns && clusters.length > 0; ++i) {
@@ -48,9 +91,9 @@ const addRow = (clusters, index) => {
 const requestArticles = async () => {
     const response = await fetch('clusters.json');
     let result = await response.json();
-    console.log(result)
 
     result = result.reverse()
+    console.log(result)
 
     let i = 0
     while(result.length > 0){

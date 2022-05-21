@@ -22,6 +22,8 @@ class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<Strin
     val docs = mutableListOf<DocType>()
     val words = Words()
 
+    private var mostRepresentative: DocType? = null
+
     init {
         add(newDocs, wordToCluster)
     }
@@ -57,7 +59,9 @@ class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<Strin
     }
 
     fun mostRepresentativeDoc(): DocType{
-        return docs.maxByOrNull { it.similarity(words) }!!
+        if(mostRepresentative == null)
+            mostRepresentative = docs.maxByOrNull { it.similarity(words) }!!
+        return mostRepresentative!!
     }
 }
 
