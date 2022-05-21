@@ -1,7 +1,7 @@
 package structures
 
-open class Words(val text: String, val words: Map<String, Int>){
-    constructor(): this("", mapOf())
+open class Words(val text: String, public val words: MutableMap<String, Int>){
+    constructor(): this("", mutableMapOf())
 
     fun isNotEmpty(): Boolean{
         return !isEmpty()
@@ -10,4 +10,6 @@ open class Words(val text: String, val words: Map<String, Int>){
     fun isEmpty(): Boolean{
         return words.isEmpty()
     }
+
+
 }
