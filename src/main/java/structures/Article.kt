@@ -16,4 +16,8 @@ class Article(val header: String, val content: String, val url: String, val sour
         result.addProperty("source", getBaseUrl(source))
         return result
     }
+
+    fun normalized(): String{
+        return getBaseUrl(source).lowercase() + header.lowercase().filter { it.isLetterOrDigit() }
+    }
 }

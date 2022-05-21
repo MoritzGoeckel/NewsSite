@@ -19,15 +19,16 @@ fun main() {
         articles.addAll(found)
     }
 
-    println(articles.distinct().size)
-
     val afterDownload = System.currentTimeMillis()
 
     println("Cluster")
     val clusterer = Clusterer<Article>()
 
-    articles.filter { it.isNotEmpty() }
-        .forEach { clusterer.addDoc(it) }
+    val acceptedArticles = articles.filter { it.isNotEmpty() }.distinctBy { it.normalized() }
+    println("""Distinct articles: ${acceptedArticles.size} (down from ${articles.size})""")
+
+    // Add to clusterer
+    acceptedArticles.forEach { clusterer.addDoc(it) }
 
     val afterCluster = System.currentTimeMillis()
 
