@@ -13,6 +13,11 @@ const createColumn = (cluster, bootstrapColumns) => {
     a.appendChild(document.createTextNode(cluster.articles[0].source))
     columnDiv.appendChild(a)
 
+    // More
+    let num = document.createElement("span")
+    num.appendChild(document.createTextNode(" +" + (cluster.articles.length - 1)))
+    columnDiv.appendChild(num)
+
     return columnDiv
 }
 
