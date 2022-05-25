@@ -27,6 +27,13 @@ h1,h2,h3,h4 {
     border-top: solid 1px #e6d9ce;
 }
 
+.article:nth-of-type(n+2) {
+    border-top: solid 1px #e6d9ce;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    display: block;
+}
+
 .col-sm-4:nth-of-type(n+2),
 .col-sm-8:nth-of-type(n+2),
 .col-sm-3:nth-of-type(n+2) {
@@ -61,6 +68,11 @@ h1,h2,h3,h4 {
     font-size: 22px;
 }
 
+.col-sm-8 .headlineImage {
+    height: calc(50% - 1rem);
+    margin-bottom: 2rem;
+}
+
 .headlineImage {
     background-size: cover;
     background-position: center;
@@ -69,7 +81,15 @@ h1,h2,h3,h4 {
     margin-bottom: 1rem;
 }
 
+#articles .row .article {
+    color: black;
+}
+
 #articles .row a {
+    text-decoration: none;
+}
+
+#articles .row .sourceLink {
     color: #990f3d;
     text-decoration: none;
 }

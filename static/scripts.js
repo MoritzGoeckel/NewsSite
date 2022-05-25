@@ -8,11 +8,12 @@ const isValidString = (text) => {
     return text.length > 3
 }
 
-const createColumn = (cluster, bootstrapColumns) => {
-    let columnDiv = document.createElement("div");
-    columnDiv.className = "col-sm-" + bootstrapColumns
-
+const createArticle = (cluster, rowType, bootstrapColumns, showImage) => {
     let article = cluster.representative
+
+    let a = document.createElement("a")
+    a.setAttribute("href", encodeURI(article.url))
+    a.className = "article"
 
     let hlType = "h2"
     if(bootstrapColumns >= 8){
@@ -23,15 +24,11 @@ const createColumn = (cluster, bootstrapColumns) => {
         hlType = "h4"
     }
 
-    if (bootstrapColumns == 3 && article.details != undefined && isValidString(article.details.image)) {
+    if (showImage && article.details != undefined && isValidString(article.details.image)) {
         let details = document.createElement("div")
         details.className = "headlineImage"
         details.style = "background-image: url('" + encodeURI(article.details.image) + "')"
-
-        console.log(article.details.title)
-        console.log(article.details.image)
-
-        columnDiv.appendChild(details)
+        a.appendChild(details)
     }
 
     // Headline
@@ -42,10 +39,10 @@ const createColumn = (cluster, bootstrapColumns) => {
         titleText = article.details.title
     }
 
-    hl.appendChild(document.createTextNode(titleText))
-    columnDiv.appendChild(hl)
+    hl.appendChild(document.createTextNode(shorten(titleText, 120)))
+    a.appendChild(hl)
 
-    if(bootstrapColumns >= 4 && article.details != undefined){
+    if(rowType.description && article.details != undefined){
         let details = document.createElement("div")
         details.className = "description"
 
@@ -55,23 +52,39 @@ const createColumn = (cluster, bootstrapColumns) => {
             )
         )
 
-        columnDiv.appendChild(details)
+        a.appendChild(details)
     }
 
     // Source
     let sourceSpan = document.createElement("span")
 
-    let a = document.createElement("a")
-    a.setAttribute("href", encodeURI(article.url))
-    a.appendChild(document.createTextNode(article.source))
-    sourceSpan.appendChild(a)
+    let source = document.createElement("a")
+    source.setAttribute("href", encodeURI(article.url))
+    source.className = "sourceLink"
+    source.appendChild(document.createTextNode(article.source))
+    sourceSpan.appendChild(source)
 
     // More
     let num = document.createElement("span")
     num.appendChild(document.createTextNode(" +" + (cluster.articles.length - 1)))
     sourceSpan.appendChild(num)
 
-    columnDiv.appendChild(sourceSpan)
+    a.appendChild(sourceSpan)
+
+    return a
+}
+
+const createColumn = (clusters, rowType, index) => {
+    let columnDiv = document.createElement("div");
+
+    bootstrapColumns = rowType.bootstrapColumns[index]
+    columnDiv.className = "col-sm-" + bootstrapColumns
+
+    for(let i = 0; clusters.length > 0 && i < rowType.articleCount[index]; ++i){
+        let a = createArticle(clusters[0], rowType, bootstrapColumns, rowType.image[index])
+        columnDiv.appendChild(a)
+        clusters.shift()
+    }
 
     return columnDiv
 }
@@ -80,20 +93,18 @@ const addRow = (clusters, index) => {
     let rowDiv = document.createElement("div");
     rowDiv.className = "row"
 
-    numColumnsTable = [2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2]
-    numColumns = numColumnsTable[index % numColumnsTable.length]
+    rowTypes = [
+        {columns:2, description:true, bootstrapColumns:[8, 4], image:[true, false], articleCount:[1, 2]},
+        {columns:3, description:true, bootstrapColumns:[4, 4, 4], image:[true, true, true], articleCount:[1, 1, 1]},
+        {columns:4, description:true, bootstrapColumns:[3, 3, 3, 3], image:[true, true, true, true], articleCount:[1, 1, 1, 1]},
+        {columns:2, description:true, bootstrapColumns:[4, 8], image:[false, true], articleCount:[2, 1]},
+        {columns:3, description:true, bootstrapColumns:[4, 4, 4], image:[true, true, true], articleCount:[1, 1, 1]},
+        {columns:4, description:true, bootstrapColumns:[3, 3, 3, 3], image:[true, true, true, true], articleCount:[1, 1, 1, 1]},
+    ]
 
-    for(i = 0; i < numColumns && clusters.length > 0; ++i) {
-        bootstrapColumns = 12 / numColumns
-
-        // Special logic for the 2 columns case
-        if(numColumns === 2){
-            if(i == 0) bootstrapColumns = 8
-            if(i == 1) bootstrapColumns = 4
-        }
-
-        rowDiv.appendChild(createColumn(clusters[0], bootstrapColumns))
-        clusters.shift()
+    rowType = rowTypes[index % rowTypes.length]
+    for(let i = 0; clusters.length > 0 && i < rowType.columns; ++i) {
+        rowDiv.appendChild(createColumn(clusters, rowType, i))
     }
 
     document.getElementById("articles").appendChild(rowDiv)

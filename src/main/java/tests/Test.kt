@@ -41,7 +41,7 @@ fun main() {
     // Download details for representative doc of top 10 clusters
     val articleParser = ArticlePage()
     clusters.filter { it.docs.size >= 3 }
-        .takeLast(50 /* max */)
+        .takeLast(100 /* max */)
         .forEach {
             try {
                 it.mostRepresentativeDoc().details = articleParser.extract(it.mostRepresentativeDoc().url)
