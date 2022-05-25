@@ -4,13 +4,15 @@ const shorten = (text, length) => {
     return text.substring(0, length - 3) + "...";
 }
 
+const isValidString = (text) => {
+    return text.length > 3
+}
+
 const createColumn = (cluster, bootstrapColumns) => {
     let columnDiv = document.createElement("div");
     columnDiv.className = "col-sm-" + bootstrapColumns
 
     let article = cluster.representative
-
-    console.log(article)
 
     let hlType = "h2"
     if(bootstrapColumns >= 8){
@@ -21,17 +23,26 @@ const createColumn = (cluster, bootstrapColumns) => {
         hlType = "h4"
     }
 
-    if (bootstrapColumns == 3 && article.details != undefined) {
+    if (bootstrapColumns == 3 && article.details != undefined && isValidString(article.details.image)) {
         let details = document.createElement("div")
         details.className = "headlineImage"
-        details.style = "background-image: url(" + article.details.image + ")"
+        details.style = "background-image: url('" + encodeURI(article.details.image) + "')"
+
+        console.log(article.details.title)
+        console.log(article.details.image)
 
         columnDiv.appendChild(details)
     }
 
     // Headline
     let hl = document.createElement(hlType)
-    hl.appendChild(document.createTextNode(article.header))
+
+    let titleText = article.header
+    if(article.details != undefined && isValidString(article.details.title)) {
+        titleText = article.details.title
+    }
+
+    hl.appendChild(document.createTextNode(titleText))
     columnDiv.appendChild(hl)
 
     if(bootstrapColumns >= 4 && article.details != undefined){
@@ -51,7 +62,7 @@ const createColumn = (cluster, bootstrapColumns) => {
     let sourceSpan = document.createElement("span")
 
     let a = document.createElement("a")
-    a.setAttribute("href", article.url)
+    a.setAttribute("href", encodeURI(article.url))
     a.appendChild(document.createTextNode(article.source))
     sourceSpan.appendChild(a)
 
@@ -93,7 +104,6 @@ const requestArticles = async () => {
     let result = await response.json();
 
     result = result.reverse()
-    console.log(result)
 
     let i = 0
     while(result.length > 0){
