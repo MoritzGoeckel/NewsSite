@@ -1,3 +1,4 @@
+import graphics.getVisualCenter
 import parsers.ArticlePage
 import parsers.MainPage
 import processors.TextProcessor
@@ -5,6 +6,7 @@ import server.WebServer
 import structures.Article
 import structures.Language
 import java.io.File
+import java.net.URL
 import kotlin.math.roundToInt
 
 fun main() {

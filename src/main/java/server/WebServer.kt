@@ -12,7 +12,7 @@ import java.io.File
 
 class WebServer {
 
-    val basePath = "static\\"
+    private val basePath = "static\\"
 
     private fun loadFile(name: String) = File("""${basePath}\${name}""").readText()
     private fun loadBytes(name: String) = File("""${basePath}\${name}""").readBytes()

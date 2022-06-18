@@ -1,10 +1,13 @@
 package parsers
 
 import com.google.gson.JsonObject
+import graphics.getVisualCenter
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import structures.Point
+import java.net.URL
 
-data class ArticleDetails(val title: String, val description: String, val image: String, val date: String, val url: String){
+data class ArticleDetails(val title: String, val description: String, val image: String, val date: String, val url: String, val imageCenter: Point? = null){
     fun toJson(): JsonObject {
         val result = JsonObject()
         result.addProperty("title", title)
@@ -12,6 +15,11 @@ data class ArticleDetails(val title: String, val description: String, val image:
         result.addProperty("image", image)
         result.addProperty("date", date)
         result.addProperty("url", url)
+
+        if (imageCenter != null) {
+            result.add("imageCenter", imageCenter.toJson())
+        }
+
         return result
     }
 }
@@ -25,13 +33,15 @@ class ArticlePage {
 
     fun extract(url: String): ArticleDetails{
         val doc = Jsoup.connect(url).get()
+        val imageUrl = getImage(doc)
 
         return ArticleDetails(
             getTitle(doc),
             getDescription(doc),
-            getImage(doc),
+            imageUrl,
             getDate(doc),
-            getUrl(doc)
+            getUrl(doc),
+            getVisualCenter(URL(imageUrl)) // does this belong here?
         )
     }
 

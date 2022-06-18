@@ -27,7 +27,15 @@ const createArticle = (cluster, rowType, bootstrapColumns, showImage) => {
     if (showImage && article.details != undefined && isValidString(article.details.image)) {
         let details = document.createElement("div")
         details.className = "headlineImage"
-        details.style = "background-image: url('" + encodeURI(article.details.image) + "')"
+        details.style = "background-image: url('" + encodeURI(article.details.image) + "');"
+        if(article.details.imageCenter != undefined){
+            var x = (article.details.imageCenter.x * 100).toFixed()
+            var y = (article.details.imageCenter.y * 100).toFixed()
+            details.style.cssText += "background-position-x: " + x + "%;"
+            details.style.cssText += "background-position-y: " + y + "%;"
+        } else {
+            console.log("imageCenter not found " + article.details)
+        }
         a.appendChild(details)
     }
 
