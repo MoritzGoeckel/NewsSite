@@ -8,7 +8,12 @@ import javax.imageio.ImageIO
 
 fun main() {
     val path = "C:\\Users\\Moritz\\Desktop\\New folder";
-    for(i in 1 .. 16){
+
+    val img = ImageIO.read(File("${path}\\17.jpg"))
+    val center = getVisualCenter(img, File("${path}\\info_17.jpg"))
+    println("$center")
+
+    /*for(i in 1 .. 17){
         try {
             val img = ImageIO.read(File("${path}\\${i}.jpg"))
             val center = getVisualCenter(img, File("${path}\\info_${i}.jpg"))
@@ -16,6 +21,6 @@ fun main() {
         } catch (e: Exception) {
             println("Can't read: ${path}\\info_${i}.jpg")
         }
-    }
+    }*/
 }
 

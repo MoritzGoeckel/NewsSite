@@ -14,7 +14,7 @@ fun readLineConfig(path: String, language: Language): List<String> {
             .filter { it.isNotEmpty() }
             .forEach { result.add(it) }
     } else {
-        println("Could not find file $globalFile")
+        println("Could not find file ${globalFile.absolutePath}")
     }
 
     // Language specific
@@ -24,7 +24,7 @@ fun readLineConfig(path: String, language: Language): List<String> {
             .filter { it.isNotEmpty() }
             .forEach { result.add(it) }
     } else {
-        println("Could not find file $localFile")
+        println("Could not find file ${localFile.absolutePath}")
     }
 
     return result

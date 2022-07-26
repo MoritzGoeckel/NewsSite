@@ -1,6 +1,7 @@
 import processors.TextProcessor
 import structures.Language
 import structures.Words
+import structures.similarity
 import java.io.File
 import kotlin.math.roundToInt
 
@@ -63,33 +64,6 @@ class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<Strin
             mostRepresentative = docs.maxByOrNull { it.similarity(words) }!!
         return mostRepresentative!!
     }
-}
-
-private fun Words.similarity(other: Words): Double {
-    if(this.words.isEmpty() || other.words.isEmpty()) return 0.0
-
-    val smaller: Map<String, Int>
-    val larger: Map<String, Int>
-    if(this.words.size > other.words.size) {
-        larger = this.words
-        smaller = other.words
-    } else {
-        larger = other.words
-        smaller = this.words
-    }
-
-    var same = 0
-    var all = 0
-    smaller.forEach{
-        if(larger.containsKey(it.key)) same += larger[it.key]!! + it.value
-        all += it.value
-    }
-
-    larger.forEach{
-        all += it.value
-    }
-
-    return same.toDouble() / all.toDouble()
 }
 
 private fun Words.add(other: Words) {
