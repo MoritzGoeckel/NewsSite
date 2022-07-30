@@ -28,12 +28,16 @@ fun CharSequence.splitIncluding(vararg delimitersList: Char): List<String> {
     }
 }
 
+// TODO Bad sentence starts:
+// denn
+// dadurch
+
 class Summarizer(private val language: Language, private val length: Int) {
     private val processor = TextProcessor(language)
 
-    fun summarize(text: String): String {
-        val sentences = makeSentences(text)
-        val document = processor.makeWordsKeepText(text)
+    fun summarize(benchmarkText: String, sentencesSource: String): String {
+        val sentences = makeSentences(sentencesSource)
+        val document = processor.makeWordsKeepText(benchmarkText)
 
         val candidates = sentences.map {
             Scored<Words>(it.similarity(document) / it.words.size, it)

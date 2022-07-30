@@ -2,44 +2,12 @@ package parsers
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.*
-import org.jsoup.parser.Tag
-import org.jsoup.select.NodeVisitor
 import processors.TextProcessor
 import structures.Article
 import structures.Language
 import java.io.File
-import kotlin.reflect.typeOf
 
 class MainPage(private val textProcessor: TextProcessor) {
-
-    fun String.normalizeUrl(base_url: String): String{
-        if(this.startsWith(base_url)) return this;
-        val separator = if(this.startsWith("/") || base_url.endsWith("/")) "" else "/"
-        return base_url + separator + this
-    }
-
-    fun Tag.isHeadline(): Boolean {
-        val name = this.normalName()
-        if(name == "h1" || name == "h2" || name == "h3") return true
-        return false
-    }
-
-    class TextNodesCollector : NodeVisitor{
-        val strings: MutableList<String> = mutableListOf()
-        override fun head(node: Node?, depth: Int) {
-            if(node != null && node is TextNode && node.text().isNotEmpty()){
-                strings.add(node.text())
-            }
-        }
-        override fun tail(node: Node?, depth: Int) { }
-    }
-
-    fun getTexts(element: Element): List<String>{
-        val visitor = TextNodesCollector ()
-        element.traverse(visitor)
-        return visitor.strings
-    }
-
     fun getLinkHeadlines(document: Document, base_url: String): List<Article>{
         val result = arrayListOf<Article>()
         val links = document.getElementsByTag("a")
@@ -72,7 +40,7 @@ class MainPage(private val textProcessor: TextProcessor) {
                 node = node.parent()
                 ++i
                 if(node.tag().isHeadline()){
-                    val texts = getTexts(node);
+                    val texts = node.getTexts();
                     // TODO support multiple text fields
                     val text = texts.maxByOrNull { it.length }
                     if(text != null) {
