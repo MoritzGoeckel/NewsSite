@@ -23,10 +23,10 @@ fun main() {
         } else {
             println("################# START $it #################")
             println(details.content)
+            println("################# SUMMARY $it #################")
+            val summary = summarizer.summarize(details.content, details.content)
+            println(summary)
             println("################# END $it #################")
-
-            /*val summary = summarizer.summarize(details.content, details.content)
-            println("$it\n$summary")*/
         }
     }
 }

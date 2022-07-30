@@ -42,13 +42,19 @@ fun main() {
 
     // Download details for representative doc of top 10 clusters
     val articleParser = ArticlePage()
+    val summarizer = summarizer.Summarizer(Language.DE, 300)
     clusters.filter { it.docs.size >= 3 }
         .takeLast(100 /* max */)
         .forEach {
             try {
-                it.mostRepresentativeDoc().details = articleParser.extract(it.mostRepresentativeDoc().url)
+                val doc = it.mostRepresentativeDoc()
+                doc.details = articleParser.extract(doc.url)
+                val details = doc.details!!
+                details.imageCenter = getVisualCenter(URL(details.image))
+                details.summary = summarizer.summarize(details.content, details.content)
             } catch (e: Exception) {
-                println("Can't download details for ${it.mostRepresentativeDoc().url}")
+                println("Can't download details for ${it.mostRepresentativeDoc().url} because of $e")
+                // TODO try with different representative document
             }
         }
 

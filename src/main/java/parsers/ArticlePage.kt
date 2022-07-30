@@ -7,27 +7,10 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
+import structures.ArticleDetails
 import structures.Point
 import java.net.URL
 import kotlin.text.StringBuilder
-
-data class ArticleDetails(val title: String, val description: String, val image: String, val date: String, val url: String, val content: String, val imageCenter: Point? = null){
-    fun toJson(): JsonObject {
-        val result = JsonObject()
-        result.addProperty("title", title)
-        result.addProperty("description", description)
-        result.addProperty("image", image)
-        result.addProperty("date", date)
-        result.addProperty("url", url)
-        result.addProperty("content", content)
-
-        if (imageCenter != null) {
-            result.add("imageCenter", imageCenter.toJson())
-        }
-
-        return result
-    }
-}
 
 class ArticlePage {
     private val descriptionMetaNames = setOf("description", "og:description", "twitter:description", "sis-article-teaser")
@@ -36,19 +19,18 @@ class ArticlePage {
     private val urlMetaNames = setOf("url", "og:url")
     private val titleMetaNames = setOf("title", "og:title", "ob_headline", "sis-article-headline")
 
-    fun extract(url: String): ArticleDetails{
+    fun extract(url: String): ArticleDetails {
         val doc = Jsoup.connect(url).get()
-        val imageUrl = getImage(doc)
 
         return ArticleDetails(
             getTitle(doc),
             getDescription(doc),
-            imageUrl,
+            getImage(doc),
             getDate(doc),
             getUrl(doc),
             getContent(doc),
-            getVisualCenter(URL(imageUrl)) // does this belong here?
-        )
+            "",
+            null)
     }
 
     private fun getMetaContent(document: Document, candidates: Set<String>): String{
@@ -199,7 +181,8 @@ class ArticlePage {
 
         articles.sortByDescending { it.text().length }
         val sb = StringBuilder()
-        collectText(articles.first(), null, null, null, sb) // longest article is actual article
+        // longest article is actual article
+        collectText(articles.first(), null, null, null, sb)
 
         val text = sb.toString()
         if(text.isNotEmpty()) {

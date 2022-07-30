@@ -1,7 +1,6 @@
 package structures
 
 import com.google.gson.JsonObject
-import parsers.ArticleDetails
 import processors.TextProcessor
 import processors.getBaseUrl
 
