@@ -4,7 +4,7 @@ import processors.TextProcessor
 import processors.readLineConfig
 import structures.*
 
-fun CharArray.splitSentences(): List<String> {
+fun CharArray.parseSentences(): List<String> {
     val delimiters = hashSetOf('\n', '.', '!')
     val numericDelimiters = '.'
     val result = ArrayList<String>()
@@ -35,16 +35,37 @@ fun CharArray.splitSentences(): List<String> {
     }
 
     // TODO handle 'bbb .' issues
+    // TODO: 15. September
+
     var idx = 0
     var lastIdx = 0
-    var isInQuote = false // TODO make it go to false after a certain distance automatically
+
+    val enclosingPairs = hashMapOf(
+        Pair('"', '"'),
+        Pair('\'', '\''),
+        Pair('(', ')'),
+        Pair('{', '}'),
+        Pair('[', ']'),
+        Pair('„', '“'),
+        //Pair('«', '»')
+    )
+
+    val closingStack = mutableListOf<Char>()
 
     while (idx < size) {
-        if(this[idx] == '\''){
-            isInQuote = !isInQuote // toggle
+        val current = this[idx]
+        if (closingStack.isNotEmpty() && closingStack.last() == current){
+            // close enclosing
+            closingStack.removeLast()
+        } else {
+            val foundClosing = enclosingPairs[current]
+            if (foundClosing != null) {
+                // open enclosing
+                closingStack.add(foundClosing)
+            }
         }
 
-        if (!isInQuote && delimiters.contains(this[idx])) {
+        if (closingStack.isEmpty() && delimiters.contains(current)) {
             if(!isNumericDelimiter(idx) && !isMultipleDots(idx)) {
                 val nextChar = nextLetterOrDigit(idx)
                 if(nextChar == ' ' || nextChar.isUpperCase()) {
@@ -105,24 +126,31 @@ class Summarizer(private val language: Language, private val length: Int) {
     }
 
     private fun makeSentences(text: String): List<Words> {
-        val quotes = setOf('\'', '„', '“', '«', '»')
         val terminator = setOf('.', '?', '!')
-
-        // TODO add . after headlines?
 
         return text
             .filter { it != '\r' } // we use only \n and no \r
-            .map { if (quotes.contains(it)) '"' else it } // replace quotes
             .toCharArray()
-            .splitSentences()
+            .parseSentences() // actually parse sentences
             .asSequence()
             .map { it.trim() } // remove trailing whitespace
-            .filter { terminator.contains(it.last()) } // TODO exclude headlines. Include only terminated sentences
+            .filter { it.isNotEmpty() } // remove empty sentences
+            .filter { it.count { char -> char.isWhitespace() } >= 3 } // remove too short sentences
             .filter {
-                // remove sentences that start bad (expensive)
+                // remove sentences that start with connecting words
                 sentence -> !discardedStarts.any { sentence.lowercase().startsWith(it) }
             }
-            .map { processor.makeWordsKeepText(it) }
-            .toList() // create documents with words
+            .map {
+                // Terminate unterminated sentences with the default terminator '.'
+                if(!terminator.contains(it.last())) {
+                    "$it." // Add default terminator
+                } else {
+                    it // Already terminated
+                }
+            }
+            //.filter { terminator.contains(it.last()) } // include only terminated sentences
+            // .map { println(it); it } // print sentences
+            .map { processor.makeWordsKeepText(it) } // create documents with words
+            .toList()
     }
 }
