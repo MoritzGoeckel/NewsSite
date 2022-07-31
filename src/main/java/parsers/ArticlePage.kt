@@ -158,7 +158,8 @@ class ArticlePage {
         }
         sb.append(result)
 
-        if(element.isBlock) {
+        if(element.isBlock || (!isValidText(next) && !isValidText(element))) {
+            // block element done, or this and next element is both not text. Add new line
             if (sb.last() != '\n') {
                 sb.append('\n')
             }

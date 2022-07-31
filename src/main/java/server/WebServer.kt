@@ -40,6 +40,12 @@ class WebServer {
             )
         }
 
+        app.get("/components.js") {
+            it.contentType(ContentType.JAVASCRIPT).result(
+                loadFile("components.js")
+            )
+        }
+
         app.get("/favicon.png") {
             it.contentType(ContentType.IMAGE_PNG).result(
                 loadBytes("favicon.png")

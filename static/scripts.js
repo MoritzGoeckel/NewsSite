@@ -8,6 +8,7 @@ const isValidString = (text) => {
     return text.length > 3
 }
 
+// TODO remove old frontend code
 const createArticle = (cluster, rowType, bootstrapColumns, showImage) => {
     let article = cluster.representative
 
@@ -130,4 +131,4 @@ const requestArticles = async () => {
     }
 }
 
-requestArticles()
+//requestArticles()
