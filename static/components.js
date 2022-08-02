@@ -19,10 +19,6 @@ class ConfigurableArticleTile extends React.Component {
     constructor(props) {
         super(props)
 
-        if(this.props.article == undefined && this.props.articles == undefined) {
-            throw "props.article / props.articles for ConfigurableArticleTile is required"
-        }
-
         this.config = {
             maxDescriptionLength: orDefault(this.props.maxDescriptionLength, 300),
             maxTitleLength: orDefault(this.props.maxTitleLength, 150),
@@ -40,16 +36,73 @@ class ConfigurableArticleTile extends React.Component {
     }
 }
 
-/*class ArticleColumn extends ConfigurableArticleTile {
+function renderArticle(article, config) {
+    let uid = 0
+
+    let rep = article.representative
+    let details = rep.details
+    console.log(rep)
+
+    if(details == null) {
+        details = {title: "", description: "", image: "", imageCenter: {x: 0.5, y: 0.5}}
+    }
+
+    if(details.imageCenter == null) {
+        details.imageCenter = {x: 0.5, y: 0.5}
+    }
+
+    let x = (details.imageCenter.x * 100).toFixed()
+    let y = (details.imageCenter.y * 100).toFixed()
+
+    // TODO: Show summary
+    // TODO: Show list of articles (more...)
+
+    let elements = []
+
+    // Image
+    if(config.showImage) {
+        elements.push(e('div', {key: uid++, className: "headlineImage",
+            style: {
+                backgroundImage: "url('"+encodeURI(details.image)+"')",
+                backgroundPositionX: x + "%",
+                backgroundPositionY: y + "%"
+            }}))
+    }
+
+    // Headline
+    elements.push(e(config.headlineType, {key: uid++}, shorten(details.title, config.maxTitleLength)))
+
+    // Description
+    elements.push(e('div', {key: uid++, className: "description"}, shorten(details.description, config.maxDescriptionLength)))
+
+    // Sources
+    elements.push(e('span', {key: uid++, className: "sourceLink"},
+        e('span', {key: uid++}, rep.source),
+        e('span', {key: uid++}, " +" + (article.articles.length - 1))
+    ))
+
+    return e('a', {href: rep.url, className: "article"}, elements)
+}
+
+class MultipleArticlesColumn extends ConfigurableArticleTile {
     constructor(props) {
         super(props)
+
+        this.config.showImage = false
+        this.config.headlineType = 'h4'
     }
 
     render() {
         let articleElements = []
-        return e('div', {key: uid++, className: this.config.bootstrapColumnType}, articleElements))
+        let articles = this.props.articles
+        let uid = 0
+
+        for(let idx in articles){
+            articleElements.push(renderArticle(articles[idx], this.config)) // TODO
+        }
+        return e('div', {key: uid++, className: this.config.bootstrapColumnType}, articleElements)
     }
-}*/
+}
 
 class ArticleTile extends ConfigurableArticleTile {
     constructor(props) {
@@ -57,51 +110,8 @@ class ArticleTile extends ConfigurableArticleTile {
     }
 
     render() {
-        let uid = 0
-
-        let rep = this.props.article.representative
-        let details = rep.details
-        console.log(rep)
-
-        if(details == null) {
-            details = {title: "", description: "", image: "", imageCenter: {x: 0.5, y: 0.5}}
-        }
-
-        if(details.imageCenter == null) {
-            details.imageCenter = {x: 0.5, y: 0.5}
-        }
-
-        let x = (details.imageCenter.x * 100).toFixed()
-        let y = (details.imageCenter.y * 100).toFixed()
-
-        // TODO: Show summary
-        // TODO: Show list of articles (more...)
-
-        let elements = []
-
-        // Image
-        if(this.config.showImage) {
-            elements.push(e('div', {key: uid++, className: "headlineImage",
-                style: {
-                    backgroundImage: "url('"+encodeURI(details.image)+"')",
-                    backgroundPositionX: x + "%",
-                    backgroundPositionY: y + "%"
-                }}))
-        }
-
-        // Headline
-        elements.push(e(this.config.headlineType, {key: uid++}, shorten(details.title, this.config.maxTitleLength)))
-
-        // Description
-        elements.push(e('div', {key: uid++, className: "description"}, shorten(details.description, this.config.maxDescriptionLength)))
-
-        // Sources
-        elements.push(e('span', {key: uid++, className: "sourceLink"},
-            e('span', {key: uid++}, rep.source),
-            e('span', {key: uid++}, " +" + (this.props.article.articles.length - 1))
-        ))
-
-        return e('div', {key: uid++, className: this.config.bootstrapColumnType}, e('a', {href: rep.url, className: "article"}, elements))
+        return e('div', {key: 0, className: this.config.bootstrapColumnType},
+            renderArticle(this.props.article, this.config))
     }
 }
 
@@ -129,7 +139,6 @@ class ArticleTileTextLarge extends ArticleTile {
     }
 }
 
-// TODO: Double article
 // TODO: Large image article
 
 class ArticleRow extends React.Component {
@@ -138,29 +147,14 @@ class ArticleRow extends React.Component {
     }
 
     render() {
-        let types = [ArticleTileTextAndImageSmall, ArticleTileTextSmall, ArticleTileTextLarge]
-
-        let rowWidth = 0
+        //let types = [ArticleTileTextAndImageSmall, ArticleTileTextSmall, ArticleTileTextLarge]
 
         let articles = this.props.articles
         let columns = []
         let uid = 0
-        for(let idx in articles){
-            while(true) {
-                // TODO this is just for testing
-                // choose random type, instantiate to get potential width
-                let type = types[Math.floor(Math.random() * types.length)]
-                let instance = new type({article: {}})
-                let elementWidth = instance.getWidth()
 
-                if(elementWidth < 1.1) {
-                    let element = e(type, {key: uid++, article: articles[idx]})
-                    columns.push(element)
-                    rowWidth += elementWidth
-                    break
-                }
-            }
-        }
+        columns.push(e(ArticleTileTextLarge, {key: uid++, article: articles[0]}))
+        columns.push(e(MultipleArticlesColumn, {key: uid++, articles: [articles[1], articles[2]]}))
 
         return e('div', {className: "row"}, columns)
     }

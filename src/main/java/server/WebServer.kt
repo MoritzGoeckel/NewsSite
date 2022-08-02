@@ -64,7 +64,9 @@ class WebServer {
                 clusterJson.add("articles", docs)
 
                 // representative article
-                clusterJson.add("representative", cluster.mostRepresentativeDoc().toJson())
+                if(cluster.representative != null) {
+                    clusterJson.add("representative", cluster.representative!!.toJson())
+                }
 
                 clusterJson
             } .forEach { clusterJson -> root.add(clusterJson) }

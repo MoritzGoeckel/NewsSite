@@ -46,15 +46,19 @@ fun main() {
     clusters.filter { it.docs.size >= 3 }
         .takeLast(100 /* max */)
         .forEach {
-            try {
-                val doc = it.mostRepresentativeDoc()
-                doc.details = articleParser.extract(doc.url)
-                val details = doc.details!!
-                details.imageCenter = getVisualCenter(URL(details.image))
-                details.summary = summarizer.summarize(details.content, details.content)
-            } catch (e: Exception) {
-                println("Can't download details for ${it.mostRepresentativeDoc().url} because of $e")
-                // TODO try with different representative document
+            it.sortByRepresentative()
+
+            for(article in it.docs) {
+                try {
+                    article.details = articleParser.extract(article.url)
+                    val details = article.details!!
+                    details.imageCenter = getVisualCenter(URL(details.image))
+                    details.summary = summarizer.summarize(details.content, details.content)
+                    it.representative = article
+                    break
+                } catch (e: Exception) {
+                    println("Can't download details for ${article.url} because of $e")
+                }
             }
         }
 
@@ -63,7 +67,7 @@ fun main() {
     // Print clusters
     clusters.forEach { cluster ->
         cluster.docs.forEach { println(it.text + " -> " + it.words + " " + it.source) }
-        println("""Representative -> ${cluster.mostRepresentativeDoc().toJson()}""")
+        println("""Representative -> ${cluster.docs.first().toJson()}""")
         println()
     }
 
