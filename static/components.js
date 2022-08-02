@@ -10,6 +10,16 @@ function orDefault(value, defaultValue){
     }
 }
 
+const shorten = (text, length) => {
+    if(text.length <= length) return text;
+
+    return text.substring(0, length - 3) + "...";
+}
+
+const isValidString = (text) => {
+    return text.length > 3
+}
+
 // TODO: Kinds of articles
 // Large image with Title on top, followed by a short description 3 width
 // Same thing with 1 width

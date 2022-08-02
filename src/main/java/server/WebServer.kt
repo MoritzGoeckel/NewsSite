@@ -34,12 +34,6 @@ class WebServer {
             )
         }
 
-        app.get("/scripts.js") {
-            it.contentType(ContentType.JAVASCRIPT).result(
-                loadFile("scripts.js")
-            )
-        }
-
         app.get("/components.js") {
             it.contentType(ContentType.JAVASCRIPT).result(
                 loadFile("components.js")
