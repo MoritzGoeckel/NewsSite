@@ -120,6 +120,8 @@ class Summarizer(private val language: Language, private val length: Int) {
             }
         }
 
+        // TODO: Re-order sentences to original order
+
         return sb
             .toString()
             .replace(" . ", ". ") // some last cosmetics
