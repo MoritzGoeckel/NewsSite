@@ -55,6 +55,7 @@ fun main() {
                     details.imageCenter = getVisualCenter(URL(details.image))
                     details.summary = summarizer.summarize(details.content, details.content)
                     it.representative = article
+                    // TODO: Find good image for cluster
                     break
                 } catch (e: Exception) {
                     println("Can't download details for ${article.url} because of $e")

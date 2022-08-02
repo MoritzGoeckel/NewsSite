@@ -68,7 +68,8 @@ h1,h2,h3,h4 {
     font-size: 22px;
 }
 
-.col-sm-8 .headlineImage {
+.col-sm-8 .headlineImage,
+.col-sm-9 .headlineImage {
     height: 60%;
     margin-bottom: 1rem;
 }

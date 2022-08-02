@@ -90,6 +90,7 @@ class MultipleArticlesColumn extends ConfigurableArticleTile {
 
         this.config.showImage = false
         this.config.headlineType = 'h4'
+        this.config.bootstrapColumnType = "col-sm-3"
     }
 
     render() {
@@ -135,11 +136,13 @@ class ArticleTileTextLarge extends ArticleTile {
     constructor(props) {
         super(props)
         this.config.headlineType = 'h2'
-        this.config.bootstrapColumnType = 'col-sm-8'
+        this.config.bootstrapColumnType = 'col-sm-9'
     }
 }
 
 // TODO: Large image article
+// TODO: List of article headlines
+// TODO: Centered text
 
 class ArticleRow extends React.Component {
     constructor(props) {
@@ -153,8 +156,16 @@ class ArticleRow extends React.Component {
         let columns = []
         let uid = 0
 
-        columns.push(e(ArticleTileTextLarge, {key: uid++, article: articles[0]}))
-        columns.push(e(MultipleArticlesColumn, {key: uid++, articles: [articles[1], articles[2]]}))
+        if(this.props.mode == 0) {
+            columns.push(e(ArticleTileTextLarge, {key: uid++, article: articles[0]}))
+            columns.push(e(MultipleArticlesColumn, {key: uid++, articles: [articles[1], articles[2]]}))
+        } else if(this.props.mode == 1) {
+            for(let idx in articles) {
+                columns.push(e(ArticleTileTextAndImageSmall, {key: uid++, article: articles[idx]}))
+            }
+        } else if(this.props.mode == 2) {
+
+        }
 
         return e('div', {className: "row"}, columns)
     }
@@ -174,7 +185,7 @@ class ArticleGrid extends React.Component {
         for(let idx in articles){
             articlesInRow.push(articles[idx])
             if(articlesInRow.length >= 4) {
-                let element = e(ArticleRow, {key: uid++, articles: articlesInRow})
+                let element = e(ArticleRow, {key: uid++, articles: articlesInRow, mode: (uid - 1) % 2})
                 rows.push(element)
                 articlesInRow = [] // clear
             }
