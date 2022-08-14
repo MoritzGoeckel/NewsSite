@@ -7,9 +7,12 @@ import java.io.File
 import java.net.URL
 import javax.imageio.ImageIO
 
+fun downloadImage(imageUrl: URL): BufferedImage {
+    return ImageIO.read(imageUrl)
+}
 
 fun getVisualCenter(imageUrl: URL, debugImagePath: File? = null): Point {
-    val image = ImageIO.read(imageUrl)
+    val image = downloadImage(imageUrl)
     return getVisualCenter(image, debugImagePath)
 }
 

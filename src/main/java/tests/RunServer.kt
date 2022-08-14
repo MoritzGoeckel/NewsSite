@@ -1,3 +1,4 @@
+import graphics.downloadImage
 import graphics.getVisualCenter
 import parsers.ArticlePage
 import parsers.MainPage
@@ -44,15 +45,25 @@ fun main() {
     val articleParser = ArticlePage()
     val summarizer = summarizer.Summarizer(Language.DE, 300)
     clusters.filter { it.docs.size >= 3 }
-        .takeLast(100 /* max */)
+        .takeLast(50 /* max */)
+        //.parallelStream()
         .forEach {
             it.sortByRepresentative()
-
             for(article in it.docs) {
                 try {
                     article.details = articleParser.extract(article.url)
                     val details = article.details!!
-                    details.imageCenter = getVisualCenter(URL(details.image))
+                    val image = downloadImage(URL(details.image))
+
+                    val widthRatio = image.width / image.height.toDouble()
+                    val pixels = image.height * image.width
+
+                    if(pixels < 400 * 400 || widthRatio < 1.3){
+                        // image is too small
+                        println("Image too small for ${article.url}: ${image.height}x${image.width} pixels=$pixels widthRatio=${widthRatio}")
+                        continue
+                    }
+                    details.imageCenter = getVisualCenter(image)
                     details.summary = summarizer.summarize(details.content, details.content)
                     it.representative = article
                     // TODO: Find good image for cluster

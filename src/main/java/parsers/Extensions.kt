@@ -5,6 +5,9 @@ import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
 import org.jsoup.parser.Tag
 import org.jsoup.select.NodeVisitor
+import java.net.URI
+import java.net.URISyntaxException
+import java.net.URL
 import javax.print.DocFlavor
 
 fun Tag.isHeadline(): Boolean {
@@ -13,8 +16,46 @@ fun Tag.isHeadline(): Boolean {
     return false
 }
 
+fun String.removeUrlPrefixes(): String{
+    var result = this
+    if(this.startsWith("https://")) result = this.removePrefix("https://")
+    else if(this.startsWith("http://")) result = this.removePrefix("http://")
+
+    result = result.removePrefix("www.")
+    return result
+}
+
+fun String.isUrlAbsolute(): Boolean{
+    return this.startsWith("http://") || this.startsWith("https://") || this.startsWith("www.");
+}
+
+fun String.getHost(): String{
+    return try {
+        val host = URI(this).host
+        if(host == null) return ""
+        return host.removeUrlPrefixes()
+    } catch (e: URISyntaxException){
+        ""
+    }
+}
+
 fun String.normalizeUrl(base_url: String): String{
-    if(this.startsWith(base_url)) return this;
+    val baseWithoutPrefix = base_url.removeUrlPrefixes()
+    val urlWithoutPrefix = this.removeUrlPrefixes()
+
+    val baseHost = base_url.getHost()
+    val host = this.getHost()
+
+    if(urlWithoutPrefix.startsWith(baseWithoutPrefix)) return this; // already absolute
+
+    // TODO use URI instead of self build things
+    // uri.isAbsolute
+    if(this.isUrlAbsolute() && host != baseHost){
+        // Url is already absolute but points to a different domain
+        println("Discarding $this, because it is not part of $base_url")
+        return ""; // discard
+    }
+
     val separator = if(this.startsWith("/") || base_url.endsWith("/")) "" else "/"
     return base_url + separator + this
 }

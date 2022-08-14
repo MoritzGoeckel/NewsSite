@@ -50,6 +50,11 @@ function renderArticle(article, config) {
     let uid = 0
 
     let rep = article.representative
+
+    if(rep == undefined){
+        return e('a', {href: "NOTHING", className: "article"}) // TODO
+    }
+
     let details = rep.details
     console.log(rep)
 

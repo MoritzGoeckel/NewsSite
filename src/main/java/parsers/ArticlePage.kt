@@ -61,6 +61,8 @@ class ArticlePage {
     }
 
     private fun getImage(document: Document): String {
+        // TODO Maybe extract image from article content
+        // TODO Discard images that have to small resolution
         return getMetaContent(document, imageMetaNames)
     }
 
