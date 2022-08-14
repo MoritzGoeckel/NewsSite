@@ -34,7 +34,9 @@ class ConfigurableArticleTile extends React.Component {
             maxTitleLength: orDefault(this.props.maxTitleLength, 150),
             headlineType: orDefault(this.props.headlineType, 'h3'), // tested with h2/h3/h4
             showImage: orDefault(this.props.showImage, true),
-            bootstrapColumnType: orDefault(this.props.bootstrapColumnType, "col-sm-3") // tested with 8/3/4
+            bootstrapColumnType: orDefault(this.props.bootstrapColumnType, "col-sm-3"), // tested with 8/3/4
+            articleWrapperClassNames: orDefault(this.props.articleWrapperClassNames, []),
+            afterArticleClassNames: orDefault(this.props.afterArticleClassNames, [])
         }
     }
 
@@ -46,7 +48,7 @@ class ConfigurableArticleTile extends React.Component {
     }
 }
 
-function renderArticle(article, config) {
+function renderArticle(article, config, autoHeight) {
     let uid = 0
 
     let rep = article.representative
@@ -84,19 +86,32 @@ function renderArticle(article, config) {
             }}))
     }
 
+    let afterImageElements = []
+
     // Headline
-    elements.push(e(config.headlineType, {key: uid++}, shorten(details.title, config.maxTitleLength)))
+    afterImageElements.push(e(config.headlineType, {key: uid++}, shorten(details.title, config.maxTitleLength)))
 
     // Description
-    elements.push(e('div', {key: uid++, className: "description"}, shorten(details.description, config.maxDescriptionLength)))
+    afterImageElements.push(e('div', {key: uid++, className: "description"}, shorten(details.description, config.maxDescriptionLength)))
 
     // Sources
-    elements.push(e('span', {key: uid++, className: "sourceLink"},
+    afterImageElements.push(e('span', {key: uid++, className: "sourceLink"},
         e('span', {key: uid++}, rep.source),
         e('span', {key: uid++}, " +" + (article.articles.length - 1))
     ))
 
-    return e('a', {href: rep.url, className: "article"}, elements)
+    let afterArticleClassNames = ["afterArticle"].concat(config.afterArticleClassNames)
+    elements.push(e('div', {className: afterArticleClassNames.join(" ")}, afterImageElements))
+    let a = e('a', {href: rep.url, className: "article"}, elements)
+
+    let articleWrapperClassNames = ["article_wrapper"].concat(config.articleWrapperClassNames)
+
+    let stl = {}
+    if(autoHeight) {
+        stl = { height: "auto" }
+    }
+
+    return e('div', {className: articleWrapperClassNames.join(" "), style: stl}, a)
 }
 
 class MultipleArticlesColumn extends ConfigurableArticleTile {
@@ -114,7 +129,7 @@ class MultipleArticlesColumn extends ConfigurableArticleTile {
         let uid = 0
 
         for(let idx in articles){
-            articleElements.push(renderArticle(articles[idx], this.config)) // TODO
+            articleElements.push(renderArticle(articles[idx], this.config, true))
         }
         return e('div', {key: uid++, className: this.config.bootstrapColumnType}, articleElements)
     }
@@ -134,6 +149,8 @@ class ArticleTile extends ConfigurableArticleTile {
 class ArticleTileTextAndImageSmall extends ArticleTile {
     constructor(props) {
         super(props)
+        this.config.articleWrapperClassNames = ["light"]
+        // this.config.afterArticleClassNames = ["paddingSmall"]
         // use all default arguments for this.config
     }
 }
@@ -152,6 +169,8 @@ class ArticleTileTextLarge extends ArticleTile {
         super(props)
         this.config.headlineType = 'h2'
         this.config.bootstrapColumnType = 'col-sm-9'
+        this.config.articleWrapperClassNames = ["dark"]
+        //this.config.afterArticleClassNames = ["padding"]
     }
 }
 
