@@ -4,3 +4,7 @@ laufzeit \d* minute(n)? \d* sekunde(n)?
 dpa-AFX-Überblick\:
 zum video
 vor \d* (min|stunden)
+abbonieren
+newsletter
+liveticker
+live-ticker

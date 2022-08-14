@@ -23,7 +23,6 @@ const isValidString = (text) => {
 // TODO: Kinds of articles
 // Large image with Title on top, followed by a short description 3 width
 // Same thing with 1 width
-//
 
 class ConfigurableArticleTile extends React.Component {
     constructor(props) {
@@ -31,6 +30,7 @@ class ConfigurableArticleTile extends React.Component {
 
         this.config = {
             maxDescriptionLength: orDefault(this.props.maxDescriptionLength, 300),
+            showDescription: orDefault(this.props.showDescription, true),
             maxTitleLength: orDefault(this.props.maxTitleLength, 150),
             headlineType: orDefault(this.props.headlineType, 'h3'), // tested with h2/h3/h4
             showImage: orDefault(this.props.showImage, true),
@@ -89,10 +89,16 @@ function renderArticle(article, config, autoHeight) {
     let afterImageElements = []
 
     // Headline
-    afterImageElements.push(e(config.headlineType, {key: uid++}, shorten(details.title, config.maxTitleLength)))
+    let title = rep.header
+    if(details.title.length > 0 && title.length > details.title){
+        title = details.title
+    }
+    afterImageElements.push(e(config.headlineType, {key: uid++}, shorten(title, config.maxTitleLength)))
 
-    // Description
-    afterImageElements.push(e('div', {key: uid++, className: "description"}, shorten(details.description, config.maxDescriptionLength)))
+    if(config.showDescription) {
+        // Description
+        afterImageElements.push(e('div', {key: uid++, className: "description"}, shorten(details.description, config.maxDescriptionLength)))
+    }
 
     // Sources
     afterImageElements.push(e('span', {key: uid++, className: "sourceLink"},
@@ -121,6 +127,8 @@ class MultipleArticlesColumn extends ConfigurableArticleTile {
         this.config.showImage = false
         this.config.headlineType = 'h4'
         this.config.bootstrapColumnType = "col-sm-3"
+        this.config.showDescription = true
+        this.config.maxDescriptionLength = 120
     }
 
     render() {
@@ -155,6 +163,14 @@ class ArticleTileTextAndImageSmall extends ArticleTile {
     }
 }
 
+class ArticleTileTextAndImageSmallNoDescription extends ArticleTile {
+    constructor(props) {
+        super(props)
+        this.config.articleWrapperClassNames = ["light"]
+        this.config.showDescription = false
+        // use all default arguments for this.config
+    }
+}
 
 class ArticleTileTextSmall extends ArticleTile {
     constructor(props) {
@@ -174,32 +190,72 @@ class ArticleTileTextLarge extends ArticleTile {
     }
 }
 
-// TODO: Large image article
-// TODO: List of article headlines
-// TODO: Centered text
+class ArticleTileTextLargeVertical extends ArticleTile {
+    constructor(props) {
+        super(props)
+        this.config.headlineType = 'h2'
+        this.config.bootstrapColumnType = 'col-sm-9'
+        this.config.articleWrapperClassNames = ["dark", "vertical"]
+    }
+}
+
+function take(source, n) {
+    let result = []
+    while(source.length > 0 && result.length < n){
+        result.push(source[0])
+        source.shift()
+    }
+    return result
+}
+
+function getBool(seed) {
+    return seed % 2 == 1;
+}
 
 class ArticleRow extends React.Component {
     constructor(props) {
         super(props)
+
+        this.seed = (this.props.index - 1)
     }
 
     render() {
-        //let types = [ArticleTileTextAndImageSmall, ArticleTileTextSmall, ArticleTileTextLarge]
-
         let articles = this.props.articles
         let columns = []
         let uid = 0
 
-        if(this.props.mode == 0) {
-            columns.push(e(ArticleTileTextLarge, {key: uid++, article: articles[0]}))
-            columns.push(e(MultipleArticlesColumn, {key: uid++, articles: [articles[1], articles[2]]}))
-        } else if(this.props.mode == 1) {
-            for(let idx in articles) {
-                columns.push(e(ArticleTileTextAndImageSmall, {key: uid++, article: articles[idx]}))
+        if(articles.length == 2) {
+            if(getBool(this.seed)) {
+                columns.push(e(ArticleTileTextAndImageSmall, {key: uid++, article: articles[1]}))
+                columns.push(e(ArticleTileTextLargeVertical, {key: uid++, article: articles[0]}))
+            } else {
+                columns.push(e(ArticleTileTextLargeVertical, {key: uid++, article: articles[0]}))
+                columns.push(e(ArticleTileTextAndImageSmall, {key: uid++, article: articles[1]}))
             }
-        } else if(this.props.mode == 2) {
+        } else if(articles.length == 3) {
+            if(getBool(this.seed)) {
+                columns.push(e(ArticleTileTextLarge, {key: uid++, article: articles[0]}))
+                columns.push(e(MultipleArticlesColumn, {key: uid++, articles: [articles[1], articles[2]]}))
+            } else {
+                columns.push(e(MultipleArticlesColumn, {key: uid++, articles: [articles[1], articles[2]]}))
+                columns.push(e(ArticleTileTextLarge, {key: uid++, article: articles[0]}))
+            }
+        } else if(articles.length == 4) {
 
+            let type = ArticleTileTextAndImageSmall
+            if(getBool(this.seed)) type = ArticleTileTextAndImageSmallNoDescription
+
+            for(let idx in articles) {
+                columns.push(e(type, {key: uid++, article: articles[idx]}))
+            }
         }
+
+        // TODO: Three same small articles
+        // TODO: One article?
+        // TODO: Check if any has no description
+        // TODO: Large image article
+        // TODO: List of article headlines
+        // TODO: Centered text
 
         return e('div', {className: "row"}, columns)
     }
@@ -213,16 +269,14 @@ class ArticleGrid extends React.Component {
     render() {
         let articles = this.props.articles
 
+        let articleNumberOptions = [2, 4, 3, 4]
+
         let rows = []
-        let articlesInRow = []
         let uid = 0
-        for(let idx in articles){
-            articlesInRow.push(articles[idx])
-            if(articlesInRow.length >= 4) {
-                let element = e(ArticleRow, {key: uid++, articles: articlesInRow, mode: (uid - 1) % 2})
-                rows.push(element)
-                articlesInRow = [] // clear
-            }
+        while(articles.length > 4 && rows.length < 200){
+            let num = articleNumberOptions[uid % articleNumberOptions.length]
+            let element = e(ArticleRow, {key: uid++, articles: take(articles, num), index: uid})
+            rows.push(element)
         }
 
         return e('div', {className: "container"}, rows)
@@ -233,7 +287,6 @@ const main = async () => {
     const response = await fetch('clusters.json');
     let result = await response.json();
     result = result.reverse()
-    //console.log(result) // TODO
 
     const domContainer = document.querySelector('#articles');
     const root = ReactDOM.createRoot(domContainer);
