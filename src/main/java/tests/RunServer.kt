@@ -63,6 +63,13 @@ fun main() {
                         println("Image too small for ${article.url}: ${image.height}x${image.width} pixels=$pixels widthRatio=${widthRatio}")
                         continue
                     }
+
+                    if(details.content.isEmpty()){
+                        // Can't find content
+                        println("No content for ${article.url}")
+                        continue
+                    }
+
                     details.imageCenter = getVisualCenter(image)
                     details.summary = summarizer.summarize(details.content, details.content)
                     it.representative = article

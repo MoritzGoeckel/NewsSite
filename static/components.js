@@ -80,7 +80,7 @@ function renderArticle(article, config, autoHeight) {
     if(config.showImage) {
         elements.push(e('div', {key: uid++, className: "headlineImage",
             style: {
-                backgroundImage: "url('"+encodeURI(details.image)+"')",
+                backgroundImage: "url('"+details.image+"')", // encodeURI
                 backgroundPositionX: x + "%",
                 backgroundPositionY: y + "%"
             }}))
@@ -217,6 +217,7 @@ class ArticleRow extends React.Component {
         super(props)
 
         this.seed = (this.props.index - 1)
+        // TODO sort clusters by number of articles
     }
 
     render() {
