@@ -1,8 +1,10 @@
+package programs
+
 import graphics.downloadImage
 import graphics.getVisualCenter
 import grouping.Clusterer
-import parsers.ArticlePage
-import parsers.MainPage
+import parsers.ArticlePageParser
+import parsers.FrontPageParser
 import processors.TextProcessor
 import server.WebServer
 import structures.Article
@@ -15,18 +17,18 @@ fun main() {
     val processor = TextProcessor(Language.DE)
 
     val start = System.currentTimeMillis()
-    val page = MainPage(processor);
+    val frontPageParser = FrontPageParser(processor)
     val articles = mutableListOf<Article>()
 
     for (url in File("data\\pages\\de.txt").readLines()) {
-        val found = page.extract(url)
+        val found = frontPageParser.extract(url)
         println("Found ${found.size} for $url")
         articles.addAll(found)
     }
 
     val afterDownload = System.currentTimeMillis()
 
-    println("grouping.Cluster")
+    println("Cluster")
     val clusterer = Clusterer<Article>()
 
     val acceptedArticles = articles.filter { it.isNotEmpty() }.distinctBy { it.normalized() }
@@ -39,11 +41,11 @@ fun main() {
 
     // Sort clusters
     val clusters = clusterer.clusters.filter { it.docs.size > 2 }
-        .filter { it.docs.distinctBy { it.source }.size >= 2 }
-        .sortedBy { it.docs.distinctBy { it.source }.size }
+        .filter { cluster -> cluster.docs.distinctBy { it.source }.size >= 2 }
+        .sortedBy { cluster -> cluster.docs.distinctBy { it.source }.size }
 
     // Download details for representative doc of top 10 clusters
-    val articleParser = ArticlePage()
+    val articleParser = ArticlePageParser()
     val summarizer = summarizer.Summarizer(Language.DE, 300)
     clusters.filter { it.docs.size >= 3 }
         .takeLast(50 /* max */)

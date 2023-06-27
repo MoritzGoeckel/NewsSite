@@ -7,7 +7,7 @@ import structures.Article
 import structures.Language
 import java.io.File
 
-class MainPage(private val textProcessor: TextProcessor) {
+class FrontPageParser(private val textProcessor: TextProcessor) {
     fun getLinkHeadlines(document: Document, base_url: String): List<Article>{
         val result = arrayListOf<Article>()
         val links = document.getElementsByTag("a")
@@ -85,7 +85,7 @@ class MainPage(private val textProcessor: TextProcessor) {
 }
 
 fun main() {
-    val page = MainPage(TextProcessor(Language.DE));
+    val page = FrontPageParser(TextProcessor(Language.DE));
     val articles = mutableListOf<Article>()
     for (url in File("data\\pages\\de.txt").readLines()) {
         val found = page.extract(url)

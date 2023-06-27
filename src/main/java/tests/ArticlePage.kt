@@ -1,11 +1,11 @@
 package tests
 
-import parsers.ArticlePage
+import parsers.ArticlePageParser
 import structures.Language
 import summarizer.Summarizer
 
 fun main() {
-    val articlePage = ArticlePage()
+    val articlePageParser = ArticlePageParser()
     val urls = listOf("https://ga.de/news/politik/ausland/moderatorin-ohnmaechtig-britisches-premier-duell-abgebrochen_aid-73504841",
         "https://www.ariva.de/news/roundup-3-russland-will-nach-2024-aus-internationaler-10253752",
         "https://www.stern.de/wirtschaft/warnstreik--lufthansa-streicht-alle-fluege-in-frankfurt-und-muenchen-32574188.html",
@@ -16,7 +16,7 @@ fun main() {
 
     val summarizer = Summarizer(Language.DE, 300)
     urls.map {
-        val details = articlePage.extract(it)
+        val details = articlePageParser.extract(it)
 
         if(details.content.isEmpty()) {
             println("No content for $it")

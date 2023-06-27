@@ -1,18 +1,14 @@
 package parsers
 
-import com.google.gson.JsonObject
-import graphics.getVisualCenter
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
 import structures.ArticleDetails
-import structures.Point
-import java.net.URL
 import kotlin.text.StringBuilder
 
-class ArticlePage {
+class ArticlePageParser {
     private val descriptionMetaNames = setOf("description", "og:description", "twitter:description", "sis-article-teaser")
     private val imageMetaNames = setOf("image", "og:image", "ob_image")
     private val dateMetaNames = setOf("date", "buildDate", "sis-article-published-date", "last-modified")
@@ -198,7 +194,7 @@ class ArticlePage {
 }
 
 fun main(){
-    val article = ArticlePage()
+    val article = ArticlePageParser()
         .extract("https://www.stern.de/wirtschaft/news/energie-russland-stoppt-gaslieferung-an-finnland---streit-um-zahlung-31884200.html")
 
     println(article.toJson())
