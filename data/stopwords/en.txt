@@ -354,7 +354,7 @@ must
 musts
 musths
 musth
-main
+grouping.main
 make
 mayest
 many

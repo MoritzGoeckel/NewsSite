@@ -1,5 +1,6 @@
 import graphics.downloadImage
 import graphics.getVisualCenter
+import grouping.Clusterer
 import parsers.ArticlePage
 import parsers.MainPage
 import processors.TextProcessor
@@ -25,7 +26,7 @@ fun main() {
 
     val afterDownload = System.currentTimeMillis()
 
-    println("Cluster")
+    println("grouping.Cluster")
     val clusterer = Clusterer<Article>()
 
     val acceptedArticles = articles.filter { it.isNotEmpty() }.distinctBy { it.normalized() }

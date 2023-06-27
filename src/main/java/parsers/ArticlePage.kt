@@ -185,7 +185,7 @@ class ArticlePage {
         articles.sortByDescending { it.text().length }
         val sb = StringBuilder()
         // longest article is actual article
-        collectText(articles.first(), null, null, null, sb)
+        articles.first()?.let { collectText(it, null, null, null, sb) }
 
         val text = sb.toString()
         if(text.isNotEmpty()) {

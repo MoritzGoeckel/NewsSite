@@ -1,3 +1,5 @@
+package grouping
+
 import processors.TextProcessor
 import structures.Language
 import structures.Words
@@ -40,7 +42,7 @@ class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<Strin
     fun add(newDocs: DocType, wordToCluster: MutableMap<String, MutableSet<Cluster<DocType>>>){
         docs.add(newDocs)
         newDocs.words.forEach {
-            wordToCluster.getOrPut(it.key, { mutableSetOf() }).add(this)
+            wordToCluster.getOrPut(it.key) { mutableSetOf() }.add(this)
             this.words.words[it.key] = this.words.words.getOrDefault(it.key, 0) + it.value
         }
     }
@@ -107,10 +109,10 @@ class Clusterer<DocType : Words> {
                     .map { (word, _) -> wordToCluster[word] } // All clusters with same words
                     .forEach { candidates.addAll(it!!.asIterable()) }
 
-                candidates.remove(bestExistingCluster); // Not this cluster
+                candidates.remove(bestExistingCluster) // Not this cluster
                 val mostSimilarCluster = candidates.maxByOrNull { it.words.similarity(bestExistingCluster.words) }
                 if(mostSimilarCluster != null && mostSimilarCluster.words.similarity(bestExistingCluster.words) >= clusterSimilarityMergeThreshold){
-                    var smaller = mostSimilarCluster;
+                    var smaller = mostSimilarCluster
                     var larger = bestExistingCluster
 
                     if(smaller.size() > larger.size()){
@@ -141,7 +143,7 @@ fun main() {
     val loader = Loader()
     val afterLoad = System.currentTimeMillis()
 
-    println("Cluster")
+    println("grouping.Cluster")
     val clusterer = Clusterer<Words>()
     loader.docs.take(100 * 1000).forEach {
         clusterer.addDoc(it)
