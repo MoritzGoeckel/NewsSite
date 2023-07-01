@@ -34,18 +34,22 @@ fun main() {
 
     val jdbcUrl = "jdbc:postgresql://localhost:5432/news_site"
 
-    // get the connection
     val connection = DriverManager.getConnection(jdbcUrl, "postgres", "manager")
     assert(connection.isValid(0))
     containsCache.fill(connection)
 
+    val articlesQueue = mutableListOf<Article>()
+
     while (true) {
-        val articles = downloader.getNew()
-        val acceptedArticles = articles.filter(containsCache::insert).filter(Article::isNotEmpty)
-        println("""Distinct articles: ${acceptedArticles.size} (down from ${articles.size})""")
-        acceptedArticles.forEach{
+        val foundArticles = downloader.getNew()
+        val newArticles = foundArticles.filter(Article::isNotEmpty).filter(containsCache::insert)
+        println("""New articles: ${newArticles.size} (down from ${foundArticles.size})""")
+        newArticles.forEach{
             try {
                 val isInserted = it.insert(connection)
+                if (isInserted){
+                    articlesQueue.add(it)
+                }
                 // assert(isInserted)
             } catch (e: Exception) {
                 println("""Error when inserting: ${e.message}""")
@@ -53,4 +57,6 @@ fun main() {
         }
         Thread.sleep(Duration.ofSeconds(30))
     }
+
+    // TODO handle articlesQueue with clusterer / details
 }

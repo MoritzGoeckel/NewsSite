@@ -16,17 +16,21 @@ fun main() {
 
     val summarizer = Summarizer(Language.DE, 300)
     urls.map {
-        val details = articlePageParser.extract(it)
+        try {
+            val details = articlePageParser.extract(it)
 
-        if(details.content.isEmpty()) {
-            println("No content for $it")
-        } else {
-            println("################# START $it #################")
-            println(details.content)
-            println("################# SUMMARY $it #################")
-            val summary = summarizer.summarize(details.content, details.content)
-            println(summary)
-            println("################# END $it #################")
+            if (details.content.isEmpty()) {
+                println("No content for $it")
+            } else {
+                println("################# START $it #################")
+                println(details.content)
+                println("################# SUMMARY $it #################")
+                val summary = summarizer.summarize(details.content, details.content)
+                println(summary)
+                println("################# END $it #################")
+            }
+        } catch (e: Exception){
+            println("Error downloading $it: ${e.message}")
         }
     }
 }

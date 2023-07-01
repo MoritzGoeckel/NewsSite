@@ -35,12 +35,12 @@ fun main() {
     println("""Distinct articles: ${acceptedArticles.size} (down from ${articles.size})""")
 
     // Add to clusterer
-    acceptedArticles.forEach { clusterer.addDoc(it) }
+    acceptedArticles.forEach { clusterer.add(it) }
 
     val afterCluster = System.currentTimeMillis()
 
     // Sort clusters
-    val clusters = clusterer.clusters.filter { it.docs.size > 2 }
+    val clusters = clusterer.clusters().filter { it.docs.size > 2 }
         .filter { cluster -> cluster.docs.distinctBy { it.source }.size >= 2 }
         .sortedBy { cluster -> cluster.docs.distinctBy { it.source }.size }
 
@@ -96,7 +96,7 @@ fun main() {
     val afterPrint = System.currentTimeMillis()
 
     println("Statistics")
-    println("Created ${clusterer.clusters.size} clusters")
+    println("Created ${clusterer.clusters().size} clusters")
     println("Loading    ${afterDownload - start}ms")
     println("Clustering ${afterCluster - afterDownload}ms / ${(articles.size.toDouble() / ((afterCluster - afterDownload) / 1000.0)).roundToInt()/1000}K documents/s")
     println("Details    ${afterDetails - afterCluster}ms")

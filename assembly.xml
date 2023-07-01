@@ -1,0 +1,24 @@
+<assembly>
+    <id>resource_files</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>static</directory>
+            <outputDirectory>static</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>sql</directory>
+            <outputDirectory>sql</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>scripts</directory>
+            <outputDirectory>scripts</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>data</directory>
+            <outputDirectory>data</outputDirectory>
+        </fileSet>
+    </fileSets>
+</assembly>
