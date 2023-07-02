@@ -36,10 +36,22 @@ class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<Strin
         }
     }
 
-    fun remove(wordToCluster: MutableMap<String, MutableSet<Cluster<DocType>>>) {
+    fun pruneWordToClusterIndex(wordToCluster: MutableMap<String, MutableSet<Cluster<DocType>>>) {
         words.words.forEach {
                 (word, _) -> wordToCluster[word]!!.remove(this) // We know the word existed before
         }
+    }
+
+    fun remove(doc: DocType): List<String> /*removed words*/ {
+        val removedWords = mutableListOf<String>()
+        docs.remove(doc)
+        for((word, num) in doc.words){
+            val remaining = words.remove(word, num)
+            if (remaining == 0){
+                removedWords.add(word)
+            }
+        }
+        return removedWords
     }
 
     fun sortByRepresentative() {

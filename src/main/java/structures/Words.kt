@@ -3,6 +3,22 @@ package structures
 open class Words(val text: String, public val words: MutableMap<String, Int>){
     constructor(): this("", mutableMapOf())
 
+    fun remove(word: String, num: Int): Int /*remaining*/ {
+        var remaining = 0
+        // reduce the number of that word, remove it if it is zero then
+        words.computeIfPresent(word) {_, oldValue ->
+            val newValue = oldValue - num
+            if(newValue > 0){
+                remaining = newValue
+                newValue
+            } else {
+                remaining = 0
+                null
+            }
+        }
+        return remaining
+    }
+
     fun isNotEmpty(): Boolean{
         return !isEmpty()
     }
