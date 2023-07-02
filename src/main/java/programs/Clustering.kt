@@ -1,4 +1,4 @@
-package tests
+package programs
 
 import grouping.Clusterer
 import processors.TextProcessor

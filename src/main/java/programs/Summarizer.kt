@@ -1,4 +1,4 @@
-package tests
+package programs
 
 import structures.Language
 import summarizer.Summarizer

@@ -1,4 +1,4 @@
-package tests
+package programs
 
 import graphics.getVisualCenter
 import java.io.File

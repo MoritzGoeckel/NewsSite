@@ -1,4 +1,4 @@
-package tests
+package programs
 
 import parsers.ArticlePageParser
 import structures.Language
