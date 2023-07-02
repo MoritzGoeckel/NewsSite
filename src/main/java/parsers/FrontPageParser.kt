@@ -5,6 +5,7 @@ import org.jsoup.nodes.*
 import processors.TextProcessor
 import structures.Article
 import structures.Language
+import printWarning
 import java.io.File
 
 class FrontPageParser(private val textProcessor: TextProcessor) {
@@ -77,7 +78,7 @@ class FrontPageParser(private val textProcessor: TextProcessor) {
         }
 
         if(result.size < 10) {
-            println("Only ${result.size} articles for $url")
+            printWarning("FrontPageParser", "Only ${result.size} articles for $url")
         }
 
         return result
@@ -87,7 +88,7 @@ class FrontPageParser(private val textProcessor: TextProcessor) {
 fun main() {
     val page = FrontPageParser(TextProcessor(Language.DE));
     val articles = mutableListOf<Article>()
-    for (url in File("data\\pages\\de.txt").readLines()) {
+    for (url in File("data/pages/de.txt").readLines()) {
         val found = page.extract(url)
         println("Found ${found.size} for $url")
         found.map { println(it.header) }

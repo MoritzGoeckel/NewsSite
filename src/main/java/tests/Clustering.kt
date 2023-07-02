@@ -12,7 +12,7 @@ class Loader {
 
     init {
         val processor = TextProcessor(Language.EN)
-        File("data\\samples\\abcnews-date-text.csv").forEachLine {
+        File("data/samples/abcnews-date-text.csv").forEachLine {
             val words = processor.makeWords(it.split(',')[1])
             if(words.isNotEmpty()) {
                 docs.add(words)

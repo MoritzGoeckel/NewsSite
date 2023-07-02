@@ -1,7 +1,7 @@
 <assembly>
     <id>resource_files</id>
     <formats>
-        <format>zip</format>
+        <format>dir</format>
     </formats>
     <fileSets>
         <fileSet>
@@ -19,6 +19,9 @@
         <fileSet>
             <directory>data</directory>
             <outputDirectory>data</outputDirectory>
+            <excludes>
+                <exclude>samples/**</exclude>
+            </excludes>
         </fileSet>
     </fileSets>
 </assembly>

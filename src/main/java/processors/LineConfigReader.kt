@@ -3,6 +3,7 @@ package processors
 import structures.Language
 import structures.folderName
 import java.io.File
+import printInfo
 
 fun readLineConfig(path: String, language: Language): List<String> {
     val result = mutableListOf<String>()
@@ -14,7 +15,7 @@ fun readLineConfig(path: String, language: Language): List<String> {
             .filter { it.isNotEmpty() }
             .forEach { result.add(it) }
     } else {
-        println("Could not find file ${globalFile.absolutePath}")
+        printInfo("LineConfigReader", "Could not find file ${globalFile.absolutePath}")
     }
 
     // Language specific
@@ -24,7 +25,7 @@ fun readLineConfig(path: String, language: Language): List<String> {
             .filter { it.isNotEmpty() }
             .forEach { result.add(it) }
     } else {
-        println("Could not find file ${localFile.absolutePath}")
+        printInfo("LineConfigReader", "Could not find file ${localFile.absolutePath}")
     }
 
     return result

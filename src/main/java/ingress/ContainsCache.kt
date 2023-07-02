@@ -1,5 +1,6 @@
 package ingress
 
+import printInfo
 import structures.Article
 import java.sql.Connection
 
@@ -15,7 +16,7 @@ class ContainsCache {
         while(results.next()){
             insert(results.getString("hash"))
         }
-        println("""Prefilled cache with ${size()} entries""")
+        printInfo("ContainsCache", """Prefilled with ${size()} entries""")
     }
 
     fun capacity(): Int {

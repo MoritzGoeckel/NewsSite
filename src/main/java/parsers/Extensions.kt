@@ -1,5 +1,6 @@
 package parsers
 
+import printTrace
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
@@ -7,8 +8,6 @@ import org.jsoup.parser.Tag
 import org.jsoup.select.NodeVisitor
 import java.net.URI
 import java.net.URISyntaxException
-import java.net.URL
-import javax.print.DocFlavor
 
 fun Tag.isHeadline(): Boolean {
     val name = this.normalName()
@@ -52,7 +51,7 @@ fun String.normalizeUrl(base_url: String): String{
     // uri.isAbsolute
     if(this.isUrlAbsolute() && host != baseHost){
         // Url is already absolute but points to a different domain
-        println("Discarding $this, because it is not part of $base_url")
+        printTrace("Extensions", "Discarding $this, because it is not part of $base_url")
         return ""; // discard
     }
 

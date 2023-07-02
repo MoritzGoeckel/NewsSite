@@ -1,13 +1,15 @@
 package tests
 
+import Configuration
 import ingress.ContainsCache
 import parsers.FrontPageParser
 import processors.TextProcessor
 import structures.Article
 import structures.Language
 import java.io.File
-import java.time.Duration
-
+import printError
+import printInfo
+import printTrace
 import java.sql.DriverManager
 
 class ArticleDownloader (textProcessor: TextProcessor, private val urls: List<String>) {
@@ -16,25 +18,27 @@ class ArticleDownloader (textProcessor: TextProcessor, private val urls: List<St
     fun getNew(): List<Article> {
         val articles = mutableListOf<Article>()
         for (url in urls) {
-            val found = frontPageParser.extract(url)
-            println("Found ${found.size} for $url")
+            try {
+                val found = frontPageParser.extract(url)
+                printTrace("ArticleDownloader", "Found ${found.size} for $url")
 
-            articles.addAll(found)
+                articles.addAll(found)
+            } catch (e: Exception) {
+                printError("ArticleDownloader", """Failed downloading: $url ${e.message}""")
+            }
         }
         return articles
     }
 }
 
 fun main() {
+    val config = Configuration()
     val textProcessor = TextProcessor(Language.DE)
-//    val urls = listOf("https://www.spiegel.de/", "https://www.tagesschau.de/", "https://www.bild.de/")
-    val urls = File("data\\pages\\de.txt").readLines()
+    val urls = File("data/pages/de.txt").readLines()
     val downloader = ArticleDownloader(textProcessor, urls)
     val containsCache = ContainsCache()
 
-    val jdbcUrl = "jdbc:postgresql://localhost:5432/news_site"
-
-    val connection = DriverManager.getConnection(jdbcUrl, "postgres", "manager")
+    val connection = DriverManager.getConnection(config.postgresUrl(), config.postgresUser(), config.postgresPassword())
     assert(connection.isValid(0))
     containsCache.fill(connection)
 
@@ -43,7 +47,7 @@ fun main() {
     while (true) {
         val foundArticles = downloader.getNew()
         val newArticles = foundArticles.filter(Article::isNotEmpty).filter(containsCache::insert)
-        println("""New articles: ${newArticles.size} (down from ${foundArticles.size})""")
+        printInfo("main", """New articles: ${newArticles.size} (down from ${foundArticles.size})""")
         newArticles.forEach{
             try {
                 val isInserted = it.insert(connection)
@@ -52,10 +56,10 @@ fun main() {
                 }
                 // assert(isInserted)
             } catch (e: Exception) {
-                println("""Error when inserting: ${e.message}""")
+                printError("main", """"Failed inserting: $it ${e.message}""")
             }
         }
-        Thread.sleep(Duration.ofSeconds(30))
+        Thread.sleep(config.frontPageScrapingInterval().toMillis())
     }
 
     // TODO handle articlesQueue with clusterer / details

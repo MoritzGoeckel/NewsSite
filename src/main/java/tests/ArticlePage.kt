@@ -3,6 +3,7 @@ package tests
 import parsers.ArticlePageParser
 import structures.Language
 import summarizer.Summarizer
+import printError
 
 fun main() {
     val articlePageParser = ArticlePageParser()
@@ -30,7 +31,7 @@ fun main() {
                 println("################# END $it #################")
             }
         } catch (e: Exception){
-            println("Error downloading $it: ${e.message}")
+            printError("ArticlePage", "Error downloading $it: ${e.message}")
         }
     }
 }

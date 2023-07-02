@@ -11,6 +11,8 @@ import structures.Article
 import structures.Language
 import java.io.File
 import java.net.URL
+import printError
+import printWarning
 import kotlin.math.roundToInt
 
 fun main() {
@@ -20,7 +22,7 @@ fun main() {
     val frontPageParser = FrontPageParser(processor)
     val articles = mutableListOf<Article>()
 
-    for (url in File("data\\pages\\de.txt").readLines()) {
+    for (url in File("data/pages/de.txt").readLines()) {
         val found = frontPageParser.extract(url)
         println("Found ${found.size} for $url")
         articles.addAll(found)
@@ -63,13 +65,13 @@ fun main() {
 
                     if(pixels < 400 * 400 || widthRatio < 1.3){
                         // image is too small
-                        println("Image too small for ${article.url}: ${image.height}x${image.width} pixels=$pixels widthRatio=${widthRatio}")
+                        printWarning("RunServer", "Image too small for ${article.url}: ${image.height}x${image.width} pixels=$pixels widthRatio=${widthRatio}")
                         continue
                     }
 
                     if(details.content.isEmpty()){
                         // Can't find content
-                        println("No content for ${article.url}")
+                        printWarning("RunServer", "No content for ${article.url}")
                         continue
                     }
 
@@ -79,7 +81,7 @@ fun main() {
                     // TODO: Find good image for cluster
                     break
                 } catch (e: Exception) {
-                    println("Can't download details for ${article.url} because of $e")
+                    printError("RunServer", "Can't download details for ${article.url} because of $e")
                 }
             }
         }
