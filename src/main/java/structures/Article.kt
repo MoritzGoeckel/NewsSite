@@ -30,7 +30,7 @@ class Article(val header: String, val content: String, val url: String, val sour
         return getBaseUrl(source).lowercase() + header.lowercase().filter { it.isLetterOrDigit() }
     }
 
-    fun insert(connection: Connection): Boolean {
+    fun insertInto(connection: Connection): Boolean {
         if (preparedStatement == null){
             preparedStatement = connection.prepareStatement("INSERT INTO articles (hash, head, content, url, source, created) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;")
         }

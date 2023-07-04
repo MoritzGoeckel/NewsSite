@@ -2,34 +2,13 @@ package programs
 
 import Configuration
 import ingress.ContainsCache
-import parsers.FrontPageParser
 import processors.TextProcessor
 import structures.Article
 import structures.Language
 import java.io.File
 import printError
 import printInfo
-import printTrace
 import java.sql.DriverManager
-
-class ArticleDownloader (textProcessor: TextProcessor, private val urls: List<String>) {
-    private val frontPageParser: FrontPageParser = FrontPageParser(textProcessor)
-
-    fun getNew(): List<Article> {
-        val articles = mutableListOf<Article>()
-        for (url in urls) {
-            try {
-                val found = frontPageParser.extract(url)
-                printTrace("ArticleDownloader", "Found ${found.size} for $url")
-
-                articles.addAll(found)
-            } catch (e: Exception) {
-                printError("ArticleDownloader", """Failed downloading: $url ${e.message}""")
-            }
-        }
-        return articles
-    }
-}
 
 fun main() {
     val config = Configuration()
@@ -50,7 +29,7 @@ fun main() {
         printInfo("main", """New articles: ${newArticles.size} (down from ${foundArticles.size})""")
         newArticles.forEach{
             try {
-                val isInserted = it.insert(connection)
+                val isInserted = it.insertInto(connection)
                 if (isInserted){
                     articlesQueue.add(it)
                 }

@@ -26,7 +26,11 @@ class Clusterer<DocType : Words> {
             for(word in removedWords){
                 wordToCluster.computeIfPresent(word) {_, clusters ->
                     clusters.remove(cluster)
-                    clusters
+                    if(clusters.isNotEmpty()) {
+                        clusters
+                    } else {
+                        null
+                    }
                 }
             }
 
@@ -106,5 +110,20 @@ class Clusterer<DocType : Words> {
 
             printTrace("Clusterer", "Merging: ${smaller.words.words} -> ${larger.words.words}")
         }
+    }
+
+    fun validate(){
+        TODO()
+        // wordToCluster
+        // docToCluster
+        // clusters
+    }
+
+    fun statistics(): String {
+        val builder = StringBuilder()
+        builder.append("Number of clusters:        ${clusters.size}\n")
+        builder.append("Word to cluster index:     ${wordToCluster.size}\n")
+        builder.append("Document to cluster index: ${docToCluster.size}\n")
+        return builder.toString()
     }
 }

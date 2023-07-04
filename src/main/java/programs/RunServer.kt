@@ -46,7 +46,7 @@ fun main() {
         .filter { cluster -> cluster.docs.distinctBy { it.source }.size >= 2 }
         .sortedBy { cluster -> cluster.docs.distinctBy { it.source }.size }
 
-    // Download details for representative doc of top 10 clusters
+    // Download details for representative doc of top 50 clusters
     val articleParser = ArticlePageParser()
     val summarizer = summarizer.Summarizer(Language.DE, 300)
     clusters.filter { it.docs.size >= 3 }

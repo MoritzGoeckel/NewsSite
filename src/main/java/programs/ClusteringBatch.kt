@@ -1,25 +1,8 @@
 package programs
 
 import grouping.Clusterer
-import processors.TextProcessor
-import structures.Language
 import structures.Words
-import java.io.File
 import kotlin.math.roundToInt
-
-class Loader {
-    var docs: MutableList<Words> = mutableListOf()
-
-    init {
-        val processor = TextProcessor(Language.EN)
-        File("data/samples/abcnews-date-text.csv").forEachLine {
-            val words = processor.makeWords(it.split(',')[1])
-            if(words.isNotEmpty()) {
-                docs.add(words)
-            }
-        }
-    }
-}
 
 fun main() {
     val start = System.currentTimeMillis()
