@@ -25,7 +25,8 @@ class ArticlePageParser {
             getDescription(doc),
             getImage(doc),
             getDate(doc),
-            getUrl(doc),
+            articleUrl = url,
+            url = getUrl(doc),
             getContent(doc),
             "",
             null)

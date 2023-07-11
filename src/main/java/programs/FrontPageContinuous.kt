@@ -69,7 +69,6 @@ fun main() {
     val articlesQueue = mutableListOf<Article>()
     while (result.next()){
         val article = Article(
-            id = result.getInt("id"),
             header = result.getString("head"),
             content = result.getString("content"),
             url = result.getString("url"),
@@ -115,6 +114,8 @@ fun main() {
 }
 
 private fun addDetails(clusters: List<Cluster<Article>>, articleParser: ArticlePageParser, summarizer: Summarizer, connection: Connection) {
+    val selectArticleDetails = connection.prepareStatement("SELECT * FROM article_details WHERE article_url = ?")
+
     clusters.filter { it.docs.size >= 3 }     // Clusters with at least 3 doc
         .takeLast(50 /* max */)            // Only 50 clusters
         .filter { it.representative == null } // Only clusters without representative
@@ -130,13 +131,8 @@ private fun addDetails(clusters: List<Cluster<Article>>, articleParser: ArticleP
                 }
 
                 try {
-                    if(article.id == null){
-                        continue
-                    }
-
-                    val select = connection.prepareStatement("SELECT * FROM article_details WHERE article_id = ?")
-                    select.setInt(1, article.id!!)
-                    val result = select.executeQuery()
+                    selectArticleDetails.setString(1, article.url)
+                    val result = selectArticleDetails.executeQuery()
 
                     if (result.next()){
                         val imageMetadata = result.getString("image_metadata")
@@ -146,6 +142,7 @@ private fun addDetails(clusters: List<Cluster<Article>>, articleParser: ArticleP
                             description = result.getString("description"),
                             image = result.getString("image"),
                             date = result.getTimestamp("published_at"),
+                            articleUrl = result.getString("article_url"),
                             url = result.getString("url"),
                             content = result.getString("content"),
                             summary = result.getString("summary"),
