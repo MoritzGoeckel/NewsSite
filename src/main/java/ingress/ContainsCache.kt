@@ -10,7 +10,7 @@ class ContainsCache {
     private val capacity = 50_000
 
     fun fill(connection: Connection){
-        val selectHashes = connection.prepareStatement("SELECT hash FROM articles ORDER BY created DESC LIMIT ?")
+        val selectHashes = connection.prepareStatement("SELECT hash FROM articles ORDER BY created_at DESC LIMIT ?")
         selectHashes.setInt(1, capacity())
         val results = selectHashes.executeQuery()
         while(results.next()){

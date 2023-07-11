@@ -6,6 +6,8 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
 import structures.ArticleDetails
+import java.sql.Timestamp
+import java.time.Instant
 import kotlin.text.StringBuilder
 
 class ArticlePageParser {
@@ -52,8 +54,12 @@ class ArticlePageParser {
         return getMetaContent(document, titleMetaNames)
     }
 
-    private fun getDate(document: Document): String {
-        return getMetaContent(document, dateMetaNames)
+    private fun getDate(document: Document): Timestamp {
+        return try {
+            Timestamp.valueOf(getMetaContent(document, dateMetaNames))
+        } catch (e: Exception){
+            Timestamp.from(Instant.EPOCH) // MGDO?
+        }
     }
 
     private fun getImage(document: Document): String {

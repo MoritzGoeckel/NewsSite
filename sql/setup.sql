@@ -24,9 +24,10 @@ CREATE TABLE article_details (
 	description VARCHAR,
 	content VARCHAR,
 	summary VARCHAR,
-	image VARCHAR (300) NOT NULL,
+	image VARCHAR (300),
+	image_metadata VARCHAR (500),
     url VARCHAR (300) NOT NULL,
-	published_at TIMESTAMP NOT NULL,
+	published_at TIMESTAMP,
 	created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT fk_articles FOREIGN KEY(article_id) REFERENCES articles(id)
 );
