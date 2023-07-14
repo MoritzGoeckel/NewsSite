@@ -24,6 +24,7 @@ fun main() {
             header = result.getString("head"),
             content = result.getString("content"),
             url = result.getString("url"),
+            originalUrl = result.getString("original_url"),
             source = result.getString("source"),
             processor = processor)
         // TODO: Also add date/created?

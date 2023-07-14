@@ -1,7 +1,6 @@
 package programs
 
 import Configuration
-import com.google.gson.JsonParser
 import graphics.downloadImage
 import graphics.getVisualCenter
 import grouping.Cluster
@@ -18,8 +17,7 @@ import printInfo
 import printTrace
 import printWarning
 import server.WebServer
-import structures.ArticleDetails
-import structures.Point
+import summarizer.GPT
 import summarizer.Summarizer
 import java.net.URL
 import java.sql.Connection
@@ -37,14 +35,14 @@ class ArticleDownloader (textProcessor: TextProcessor, private val urls: List<St
 
                 articles.addAll(found)
             } catch (e: Exception) {
-                printError("ArticleDownloader", """Failed downloading: $url ${e.message}""")
+                printError("ArticleDownloader", "Failed downloading: $url ${e.message}")
             }
         }
         return articles
     }
 }
 
-private const val num_articles = 1000
+private const val num_articles = 2000
 
 fun main() {
     val config = Configuration()
@@ -72,6 +70,7 @@ fun main() {
             header = result.getString("head"),
             content = result.getString("content"),
             url = result.getString("url"),
+            originalUrl = result.getString("original_url"),
             source = result.getString("source"),
             processor = textProcessor)
         // TODO: Also add date/created?
@@ -81,9 +80,14 @@ fun main() {
 
     insertQueueIntoClusterer(articlesQueue, insertedDocs, clusterer)
     val server = WebServer()
+    val gpt = GPT()
     run {
         val clusters = sortedClusters(clusterer)
         addDetails(clusters, articleParser, summarizer, connection)
+        if(gpt.isAvailable()) {
+            // TODO: Repeat
+            createOriginal(clusters, articleParser, summarizer, connection, gpt)
+        }
         server.clusters = clusters
         server.start()
     }
@@ -113,12 +117,50 @@ fun main() {
     }
 }
 
-private fun addDetails(clusters: List<Cluster<Article>>, articleParser: ArticlePageParser, summarizer: Summarizer, connection: Connection) {
-    val selectArticleDetails = connection.prepareStatement("SELECT * FROM article_details WHERE article_url = ?")
+private fun createOriginal(
+    clusters: List<Cluster<Article>>,
+    articleParser: ArticlePageParser,
+    summarizer: Summarizer,
+    connection: Connection,
+    gpt: GPT
+) {
+    val unusedClusters = clusters.filter { it.docs.size >= 3 }       // Clusters with at least 3 doc
+        .takeLast(50 /* max */)              // Only 50 clusters
+        .filter { cluster -> cluster.docs.filter { doc -> doc.originalUrl.isEmpty() }.size > (cluster.docs.size * 0.7) }   // Only with > 70% not used docs
 
-    clusters.filter { it.docs.size >= 3 }     // Clusters with at least 3 doc
-        .takeLast(50 /* max */)            // Only 50 clusters
-        .filter { it.representative == null } // Only clusters without representative
+    for (cluster in unusedClusters){
+        val text = StringBuilder()
+        val images = mutableListOf<String>()
+        cluster.docs.forEach {
+            text.append(it.header)
+            text.append(it.content)
+            addDetails(it, connection, articleParser, summarizer);
+            if(it.details != null) {
+                text.append(it.details!!.content)
+                text.append(it.details!!.title)
+                if(it.details!!.image.isNotEmpty()) {
+                    images.add(it.details!!.image)
+                }
+            }
+        }
+
+        if(text.length > 300 /* min char threshold */) {
+            val original = gpt.generateOriginal(text.toString(), images)
+            original.header
+            original.content
+            original.images
+
+            cluster.docs.forEach { it.setOriginalUrl(original.url, connection) }
+            // TODO into database
+            break
+        }
+    }
+}
+
+private fun addDetails(clusters: List<Cluster<Article>>, articleParser: ArticlePageParser, summarizer: Summarizer, connection: Connection) {
+    clusters.filter { it.docs.size >= 3 }       // Clusters with at least 3 doc
+        .takeLast(50 /* max */)              // Only 50 clusters
+        .filter { it.representative == null }   // Only clusters without representative
         .forEach {
             it.sortByRepresentative()
             for (article in it.docs) {
@@ -130,65 +172,59 @@ private fun addDetails(clusters: List<Cluster<Article>>, articleParser: ArticleP
                     break
                 }
 
-                try {
-                    selectArticleDetails.setString(1, article.url)
-                    val result = selectArticleDetails.executeQuery()
-
-                    if (result.next()){
-                        val imageMetadata = result.getString("image_metadata")
-                        val imageMetadataJson = JsonParser.parseString(imageMetadata).asJsonObject
-                        article.details = ArticleDetails(
-                            title = result.getString("title"),
-                            description = result.getString("description"),
-                            image = result.getString("image"),
-                            date = result.getTimestamp("published_at"),
-                            articleUrl = result.getString("article_url"),
-                            url = result.getString("url"),
-                            content = result.getString("content"),
-                            summary = result.getString("summary"),
-                            imageCenter = Point(imageMetadataJson)
-                        )
-                        printInfo("RunServer", "Loaded representative and details for ${article.url}")
-
-                    } else {
-                        article.details = articleParser.extract(article.url)
-                        val details = article.details!!
-                        val image = downloadImage(URL(details.image))
-
-                        val widthRatio = image.width / image.height.toDouble()
-                        val pixels = image.height * image.width
-
-                        if (pixels < 400 * 400 || widthRatio < 1.3) {
-                            // image is too small
-                            printWarning(
-                                "RunServer",
-                                "Image too small for ${article.url}: ${image.height}x${image.width} pixels=$pixels widthRatio=${widthRatio}"
-                            )
-                            continue
-                        }
-
-                        if (details.content.isEmpty()) {
-                            // Can't find content
-                            printWarning("RunServer", "No content for ${article.url}")
-                            continue
-                        }
-
-                        details.imageCenter = getVisualCenter(image)
-                        details.summary = summarizer.summarize(details.content, details.content)
-
-                        details.insertInto(article, connection)
-                        printInfo("RunServer", "Created representative and details for ${article.url}")
-
-                    }
-
+                val success = addDetails(article, connection, articleParser, summarizer)
+                if(success) {
                     it.representative = article
                     // TODO: Find good image for cluster
                     break
-                } catch (e: Exception) {
-                    printError("RunServer", "Can't download details for ${article.url} because of $e")
                 }
             }
         }
+}
+
+private fun addDetails(
+    article: Article,
+    connection: Connection,
+    articleParser: ArticlePageParser,
+    summarizer: Summarizer
+): Boolean {
+    try {
+        if (article.loadDetails(connection)) {
+            printInfo("RunServer", "Loaded representative and details for ${article.url}")
+        } else {
+            article.details = articleParser.extract(article.url)
+            val details = article.details!!
+            val image = downloadImage(URL(details.image))
+
+            val widthRatio = image.width / image.height.toDouble()
+            val pixels = image.height * image.width
+
+            if (pixels < 400 * 400 || widthRatio < 1.3) {
+                // image is too small
+                printWarning(
+                    "RunServer",
+                    "Image too small for ${article.url}: ${image.height}x${image.width} pixels=$pixels widthRatio=${widthRatio}"
+                )
+                return false
+            }
+
+            if (details.content.isEmpty()) {
+                // Can't find content
+                printWarning("RunServer", "No content for ${article.url}")
+                return false
+            }
+
+            details.imageCenter = getVisualCenter(image)
+            details.summary = summarizer.summarize(details.content, details.content)
+
+            details.insertInto(article, connection)
+            printInfo("RunServer", "Created representative and details for ${article.url}")
+        }
+    } catch (e: Exception) {
+        printError("RunServer", "Can't download details for ${article.url} because of $e")
+        return false
+    }
+    return true
 }
 
 private fun sortedClusters(clusterer: Clusterer<Article>): List<Cluster<Article>> {
