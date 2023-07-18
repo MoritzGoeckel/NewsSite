@@ -36,7 +36,7 @@ class Article(val header: String, val content: String, val url: String, val sour
     }
 
     fun normalized(): String{
-        return getBaseUrl(source).lowercase() + header.lowercase().filter { it.isLetterOrDigit() }
+        return getBaseUrl(source).toLowerCase() + header.toLowerCase().filter { it.isLetterOrDigit() }
     }
 
     fun insertInto(connection: Connection): Boolean {

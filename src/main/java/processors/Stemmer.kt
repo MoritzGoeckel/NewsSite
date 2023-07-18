@@ -10,7 +10,7 @@ class Stemmer(private var language: Language) {
 
     fun stem(word: String): String {
         val result = word
-            .lowercase()
+            .toLowerCase()
             .filter { it.isLetterOrDigit() } // remove special chars
 
         if(language == Language.EN) {

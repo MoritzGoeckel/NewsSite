@@ -1,23 +1,35 @@
 package summarizer
 
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import printError
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import printInfo
 import structures.Original
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.UnsupportedEncodingException
-import java.net.HttpURLConnection
-import java.net.URL
-import java.nio.charset.Charset
+import java.security.InvalidParameterException
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 
 class GPT(private val apiKey: String) {
+    private val client = OkHttpClient.Builder()
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build();
+
+    private val gson = GsonBuilder().create()
+    private val mediaType: MediaType = "application/json; charset=utf-8".toMediaType()
+
+    private val charsPerToken = 4
+    private val maximumTokens = 2500 // is actually 4097, but that is too tight
+
     companion object {
         var lastRequest: Instant = Instant.EPOCH
 
@@ -38,6 +50,10 @@ class GPT(private val apiKey: String) {
 
     fun isAvailable(): Boolean{
         return ChronoUnit.SECONDS.between(lastRequest, Instant.now()) >= 21
+    }
+
+    fun maxLength(): Int{
+        return maximumTokens * charsPerToken;
     }
 
     fun doRequest(request: String): JsonObject {
@@ -65,34 +81,23 @@ class GPT(private val apiKey: String) {
         messages.add(message)
         dataJson.add("messages", messages)
 
-        val connection = URL("https://api.openai.com/v1/chat/completions").openConnection() as HttpURLConnection
-        connection.requestMethod = "POST"
-        connection.setRequestProperty("Content-Type", "application/json")
-        // connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("Authorization", "Bearer $apiKey")
-        connection.doOutput = true
+        val body: RequestBody = dataJson.toString().toRequestBody(mediaType)
+        val httpRequest: Request = Request.Builder()
+            .url("https://api.openai.com/v1/chat/completions")
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Authorization", "Bearer $apiKey")
+            .post(body)
+            .build()
 
-        // Write
-        val dataStr = dataJson.toString()
+        val response = client.newCall(httpRequest).execute()
+        val jsonResponse = response.body!!.string()
+        val rootObject = JsonParser.parseString(jsonResponse).asJsonObject
 
-        // validateUTF8(dataStr) // TODO
+        // Usually happens if you give improper arguments (either an unrecognized argument or bad argument value)
+        if (rootObject.has("error"))
+            throw IllegalArgumentException(rootObject["error"].asJsonObject["message"].asString)
 
-        printInfo("GPT", dataStr)
-        connection.outputStream.use { os ->
-            val input = dataStr.encodeToByteArray (0, dataStr.length, true)
-            input.decodeToString() // TODO
-
-            os.write(input, 0, input.size)
-        }
-
-        if(connection.responseCode != 200) {
-            printError("GPT", "${connection.responseCode}: ${connection.responseMessage}")
-        }
-
-        val reader = BufferedReader(InputStreamReader(connection.inputStream, "utf-8"))
-        val response = reader.readText()
-
-        return JsonParser.parseString(response).asJsonObject
+        return rootObject
     }
 
     fun generateOriginal(text: String, images: List<String>): Original{
@@ -100,6 +105,10 @@ class GPT(private val apiKey: String) {
         val prompt = StringBuilder()
         prompt.append("Schreibe eine Zusammenfassung und eine Überschrift für den folgenden Text:\n")
         prompt.append(removeSpecial(text))
+
+        if(text.length > maxLength()){
+            throw InvalidParameterException("Input (${text.length}) is too long for gpt, get it bellow ${maxLength()}")
+        }
 
         val requestString = prompt.toString()
 
@@ -148,11 +157,11 @@ class GPT(private val apiKey: String) {
         assert(header.isNotEmpty())
         assert(content.isNotEmpty())
 
-        return Original(header, content, images, headerToUrl(header), text, jsonContent)
+        return Original(header.trim(), content.trim(), images, headerToUrl(header).trim(), text, jsonContent)
     }
 
     private fun headerToUrl(header: String): String {
-        return header.lowercase().toCharArray().map {
+        return header.toLowerCase().toCharArray().map {
             if((it in 'a'..'z') || (it in '0'..'9')) {
                 it
             } else {

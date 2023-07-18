@@ -93,7 +93,7 @@ class Summarizer(private val language: Language, private val length: Int) {
     init {
         discardedStarts.addAll(
             readLineConfig("discard_summary_sentence_start", language)
-                .map { it.lowercase() }
+                .map { it.toLowerCase() }
         )
     }
 
@@ -140,7 +140,7 @@ class Summarizer(private val language: Language, private val length: Int) {
             .filter { it.count { char -> char.isWhitespace() } >= 3 } // remove too short sentences
             .filter {
                 // remove sentences that start with connecting words
-                sentence -> !discardedStarts.any { sentence.lowercase().startsWith(it) }
+                sentence -> !discardedStarts.any { sentence.toLowerCase().startsWith(it) }
             }
             .map {
                 // Terminate unterminated sentences with the default terminator '.'

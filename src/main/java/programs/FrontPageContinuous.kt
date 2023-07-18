@@ -142,26 +142,27 @@ private fun createOriginal(
         .filter { cluster -> cluster.docs.filter { doc -> doc.originalUrl.isEmpty() }.size > (cluster.docs.size * 0.7) }   // Only with > 70% not used docs
 
     for (cluster in unusedClusters){
-        val text = StringBuilder()
+        val chunks = mutableListOf<String>()
         val images = mutableListOf<String>()
         cluster.docs.forEach {
-            text.append(it.header)
-            text.append(it.content)
+            chunks.add(it.header)
+            chunks.add(it.content)
             assignDetails(it, connection, articleParser, summarizer);
             if(it.details != null) {
-                text.append(it.details!!.content)
-                text.append(it.details!!.title)
+                chunks.add(it.details!!.content)
+                chunks.add(it.details!!.title)
                 if(it.details!!.image.isNotEmpty()) {
                     images.add(it.details!!.image)
                 }
             }
         }
 
-        if(text.length > 300 /* min char threshold */) {
-            val original = gpt.generateOriginal(text.toString(), images)
-            original.header
-            original.content
-            original.images
+        var text = chunks.map { it.trim() }.distinct().joinToString("\n")
+        if(text.length > 1000 /* min char threshold */) {
+            if (text.length > gpt.maxLength()) {
+                text = text.substring(0, gpt.maxLength())
+            }
+            val original = gpt.generateOriginal(text, images)
             original.insertInto(connection)
             cluster.docs.forEach { it.setOriginalUrl(original.url, connection) }
             break

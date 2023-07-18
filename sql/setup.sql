@@ -6,7 +6,7 @@ CREATE DATABASE news_site
     IS_TEMPLATE = False;
 
 CREATE TABLE originals (
-    url VARCHAR (300) UNIQUE PRIMARY KEY,
+    url VARCHAR (600) UNIQUE PRIMARY KEY,
     head VARCHAR (500) NOT NULL,
     content VARCHAR NOT NULL,
     media VARCHAR,
