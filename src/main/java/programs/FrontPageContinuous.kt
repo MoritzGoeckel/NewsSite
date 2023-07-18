@@ -139,21 +139,23 @@ private fun createOriginal(
 ) {
     val unusedClusters = clusters.filter { it.docs.size >= 3 }       // Clusters with at least 3 doc
         .takeLast(50 /* max */)              // Only 50 clusters
-        .filter { cluster -> cluster.docs.filter { doc -> doc.originalUrl.isEmpty() }.size > (cluster.docs.size * 0.7) }   // Only with > 70% not used docs
+        .filter { cluster -> cluster.docs.filter { doc -> doc.originalUrl.isEmpty() }.size > (cluster.docs.size * 0.9) }   // Only with > 70% not used docs
 
     for (cluster in unusedClusters){
         val chunks = mutableListOf<String>()
         val images = mutableListOf<String>()
-        cluster.docs.forEach {
-            chunks.add(it.header)
-            chunks.add(it.content)
-            assignDetails(it, connection, articleParser, summarizer);
-            if(it.details != null) {
-                chunks.add(it.details!!.content)
-                chunks.add(it.details!!.title)
-                if(it.details!!.image.isNotEmpty()) {
-                    images.add(it.details!!.image)
-                }
+        cluster.docs
+            .filter { it.originalUrl.isEmpty() }
+            .forEach {
+                chunks.add(it.header)
+                chunks.add(it.content)
+                assignDetails(it, connection, articleParser, summarizer);
+                if(it.details != null) {
+                    chunks.add(it.details!!.content)
+                    chunks.add(it.details!!.title)
+                    if(it.details!!.image.isNotEmpty()) {
+                        images.add(it.details!!.image)
+                    }
             }
         }
 
