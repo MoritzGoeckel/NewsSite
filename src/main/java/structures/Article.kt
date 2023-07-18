@@ -41,7 +41,7 @@ class Article(val header: String, val content: String, val url: String, val sour
 
     fun insertInto(connection: Connection): Boolean {
         if (preparedStatement == null){
-            preparedStatement = connection.prepareStatement("INSERT INTO articles (hash, head, content, url, original_url, source, created_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;")
+            preparedStatement = connection.prepareStatement("INSERT INTO articles (hash, head, content, url, original_url, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;")
         }
 
         preparedStatement!!.setString(1, normalized())

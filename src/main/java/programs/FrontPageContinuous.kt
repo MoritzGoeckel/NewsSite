@@ -22,6 +22,7 @@ import summarizer.Summarizer
 import java.net.URL
 import java.sql.Connection
 import java.sql.DriverManager
+import kotlin.concurrent.thread
 
 class ArticleDownloader (textProcessor: TextProcessor, private val urls: List<String>) {
     private val frontPageParser: FrontPageParser = FrontPageParser(textProcessor)
@@ -74,24 +75,36 @@ fun main() {
             source = result.getString("source"),
             processor = textProcessor)
         // TODO: Also add date/created?
-        // TODO add details from database
         articlesQueue.add(article)
     }
 
     insertQueueIntoClusterer(articlesQueue, insertedDocs, clusterer)
     val server = WebServer()
-    val gpt = GPT()
+
     run {
         val clusters = sortedClusters(clusterer)
-        addDetails(clusters, articleParser, summarizer, connection)
-        if(gpt.isAvailable()) {
-            // TODO: Repeat
-            createOriginal(clusters, articleParser, summarizer, connection, gpt)
-        }
+        assignRepresentatives(clusters, articleParser, summarizer, connection)
         server.clusters = clusters
         server.start()
     }
 
+    // Create originals every 21 seconds
+    val gpt = GPT(config.openAIKey())
+    thread(start = true) {
+        while(true) {
+            try {
+                val clusters = server.clusters
+                if (gpt.isAvailable()) {
+                    createOriginal(clusters, articleParser, summarizer, connection, gpt)
+                }
+            } catch (e: Exception){
+                printError("RunServer/GPT", "Failed creating original: $e\n${e.stackTraceToString()}")
+            }
+            gpt.waitUntilAvailable()
+        }
+    }
+
+    // Keep downloading in main thread
     while (true) {
         val foundArticles = downloader.getNew()
         val newArticles = foundArticles.filter(Article::isNotEmpty).filter(containsCache::insert)
@@ -111,7 +124,7 @@ fun main() {
         insertQueueIntoClusterer(articlesQueue, insertedDocs, clusterer)
 
         val clusters = sortedClusters(clusterer)
-        addDetails(clusters, articleParser, summarizer, connection)
+        assignRepresentatives(clusters, articleParser, summarizer, connection)
         server.clusters = clusters
         Thread.sleep(config.frontPageScrapingInterval().toMillis())
     }
@@ -134,7 +147,7 @@ private fun createOriginal(
         cluster.docs.forEach {
             text.append(it.header)
             text.append(it.content)
-            addDetails(it, connection, articleParser, summarizer);
+            assignDetails(it, connection, articleParser, summarizer);
             if(it.details != null) {
                 text.append(it.details!!.content)
                 text.append(it.details!!.title)
@@ -149,15 +162,14 @@ private fun createOriginal(
             original.header
             original.content
             original.images
-
+            original.insertInto(connection)
             cluster.docs.forEach { it.setOriginalUrl(original.url, connection) }
-            // TODO into database
             break
         }
     }
 }
 
-private fun addDetails(clusters: List<Cluster<Article>>, articleParser: ArticlePageParser, summarizer: Summarizer, connection: Connection) {
+private fun assignRepresentatives(clusters: List<Cluster<Article>>, articleParser: ArticlePageParser, summarizer: Summarizer, connection: Connection) {
     clusters.filter { it.docs.size >= 3 }       // Clusters with at least 3 doc
         .takeLast(50 /* max */)              // Only 50 clusters
         .filter { it.representative == null }   // Only clusters without representative
@@ -172,7 +184,7 @@ private fun addDetails(clusters: List<Cluster<Article>>, articleParser: ArticleP
                     break
                 }
 
-                val success = addDetails(article, connection, articleParser, summarizer)
+                val success = assignDetails(article, connection, articleParser, summarizer)
                 if(success) {
                     it.representative = article
                     // TODO: Find good image for cluster
@@ -182,7 +194,7 @@ private fun addDetails(clusters: List<Cluster<Article>>, articleParser: ArticleP
         }
 }
 
-private fun addDetails(
+private fun assignDetails(
     article: Article,
     connection: Connection,
     articleParser: ArticlePageParser,
@@ -218,7 +230,7 @@ private fun addDetails(
             details.summary = summarizer.summarize(details.content, details.content)
 
             details.insertInto(article, connection)
-            printInfo("RunServer", "Created representative and details for ${article.url}")
+            printInfo("RunServer", "Created details for ${article.url}")
         }
     } catch (e: Exception) {
         printError("RunServer", "Can't download details for ${article.url} because of $e")

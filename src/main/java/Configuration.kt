@@ -2,6 +2,7 @@ import java.time.Duration
 
 class Configuration {
     private var frontPageScrapingInterval: Duration = Duration.ofMinutes(20)
+    private var openAIKey: String = ""
 
     fun frontPageScrapingInterval(): Duration {
         return frontPageScrapingInterval
@@ -17,6 +18,10 @@ class Configuration {
 
     fun postgresUrl(): String {
         return "jdbc:postgresql://localhost:5432/news_site"
+    }
+
+    fun openAIKey(): String {
+        return openAIKey
     }
 
     init {
@@ -39,6 +44,15 @@ class Configuration {
                 frontPageScrapingInterval = Duration.ofSeconds(Integer.parseInt(maybe).toLong())
             }
             printInfo("Configuration", "$variableName=${frontPageScrapingInterval}")
+        }
+
+        run {
+            val variableName = "open_ai_key"
+            val maybe: String? = System.getenv(variableName)
+            if(!maybe.isNullOrEmpty()){
+                openAIKey = maybe
+            }
+            printInfo("Configuration", "$variableName=${openAIKey}")
         }
     }
 }

@@ -10,7 +10,8 @@ CREATE TABLE originals (
     head VARCHAR (500) NOT NULL,
     content VARCHAR NOT NULL,
     media VARCHAR,
-    raw VARCHAR NOT NULL,
+    raw_in VARCHAR NOT NULL,
+    raw_out VARCHAR NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
