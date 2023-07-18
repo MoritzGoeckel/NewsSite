@@ -157,10 +157,28 @@ private fun createOriginal(
             }
         }
 
-        var text = chunks.map { it.trim() }.distinct().joinToString("\n")
+        var text = chunks
+            .asSequence()
+            .map { it.trim() }
+            .map {
+                if(!it.endsWith(".")){
+                    "$it. "
+                } else {
+                    it
+                }
+            }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .joinToString("\n")
+            .trim()
+
         if(text.length > 1000 /* min char threshold */) {
             if (text.length > gpt.maxLength()) {
-                text = text.substring(0, gpt.maxLength())
+                var i = gpt.maxLength()
+                while (i > 0 && text[i] != '.'){
+                    --i
+                }
+                text = text.substring(0, i + 1)
             }
             val original = gpt.generateOriginal(text, images)
             original.insertInto(connection)

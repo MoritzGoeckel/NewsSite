@@ -20,15 +20,19 @@ import kotlin.math.abs
 
 
 class GPT(private val apiKey: String) {
+    private val model = "gpt-3.5-turbo-16k"
+    // gpt-4, gpt-4-0613, gpt-4-32k, gpt-4-32k-0613, gpt-3.5-turbo, gpt-3.5-turbo-0613, gpt-3.5-turbo-16k, gpt-3.5-turbo-16k-0613
+
+    private val temperature = 1.0
     private val client = OkHttpClient.Builder()
-        .readTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
         .build();
 
     private val gson = GsonBuilder().create()
     private val mediaType: MediaType = "application/json; charset=utf-8".toMediaType()
 
     private val charsPerToken = 4
-    private val maximumTokens = 2500 // is actually 4097, but that is too tight
+    private val maximumTokens = 2000 // is actually 4097, but that is too tight
 
     companion object {
         var lastRequest: Instant = Instant.EPOCH
@@ -64,15 +68,15 @@ class GPT(private val apiKey: String) {
           -d '{
              "model": "gpt-3.5-turbo",
              "messages": [{"role": "user", "content": "Say this is a test!"}],
-             "temperature": 0.7
+             "temperature": 0.9
            }'
          */
 
         lastRequest = Instant.now()
 
         val dataJson = JsonObject()
-        dataJson.addProperty("model", "gpt-3.5-turbo")
-        dataJson.addProperty("temperature", 0.7)
+        dataJson.addProperty("model", model)
+        dataJson.addProperty("temperature", temperature)
 
         val message = JsonObject()
         message.addProperty("role", "user")
@@ -103,8 +107,10 @@ class GPT(private val apiKey: String) {
     fun generateOriginal(text: String, images: List<String>): Original{
         // https://chat.openai.com/
         val prompt = StringBuilder()
-        prompt.append("Schreibe eine Zusammenfassung und eine Überschrift für den folgenden Text:\n")
+        prompt.append("Du bist ein professioneller Journalist. Um einen Artikel zu schreiben, hast du die Informationen in der nächsten Zeile:\n")
         prompt.append(removeSpecial(text))
+        prompt.append("\n")
+        prompt.append("Schreibe nun einen Artikel zu dem Thema. Schreibe in die erste Zeile eine kurze Überschrift, gefolgt von dem Artikel in den nächsten Absätzen.")
 
         if(text.length > maxLength()){
             throw InvalidParameterException("Input (${text.length}) is too long for gpt, get it bellow ${maxLength()}")
@@ -117,42 +123,19 @@ class GPT(private val apiKey: String) {
 
         val regex = "Zusammenfassung:([\\s\\S]+)Überschrift:([\\s\\S]+)|Überschrift:([\\s\\S]+)Zusammenfassung:([\\s\\S]+)".toRegex()
 
-        printInfo("GPT", jsonContent)
+        printInfo("GPT", "Request: $requestString")
+        printInfo("GPT", "Answer: $jsonContent")
 
-        val matches = regex.matchEntire(jsonContent)
-        assert(matches != null)
-        assert(matches!!.groups.size == 5)
+        val lines = jsonContent.split("\n")
 
-        var header = ""
-        var content = ""
-
-        run {
-            val match = matches.groups[1]
-            if (match?.value?.isNotEmpty() == true) {
-                content = match.value
-            }
+        var header = lines.first()
+        if (header.startsWith('"') && header.endsWith('"')){
+            header = header.trim('"')
         }
-
-        run {
-            val match = matches.groups[2]
-            if (match?.value?.isNotEmpty() == true) {
-                header = match.value
-            }
+        if (header.startsWith('\'') && header.endsWith('\'')){
+            header = header.trim('\'')
         }
-
-        run {
-            val match = matches.groups[3]
-            if (match?.value?.isNotEmpty() == true) {
-                header = match.value
-            }
-        }
-
-        run {
-            val match = matches.groups[4]
-            if (match?.value?.isNotEmpty() == true) {
-                content = match.value
-            }
-        }
+        val content = lines.subList(1, lines.size - 1).joinToString("\n")
 
         assert(header.isNotEmpty())
         assert(content.isNotEmpty())
@@ -161,13 +144,16 @@ class GPT(private val apiKey: String) {
     }
 
     private fun headerToUrl(header: String): String {
-        return header.toLowerCase().toCharArray().map {
+        val url = header.toLowerCase().toCharArray().map {
             if((it in 'a'..'z') || (it in '0'..'9')) {
                 it
             } else {
                 '_'
             }
         }.toString()
+
+        return if (url.length < 300) url
+               else url.substring(0, 300)
     }
 
     private fun mapSpecialToNormal(c: Char): Char?{
