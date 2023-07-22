@@ -6,7 +6,9 @@ import com.google.gson.JsonObject
 import io.javalin.Javalin
 import io.javalin.http.ContentType
 import structures.Article
+import structures.Original
 import java.io.File
+import java.sql.Connection
 
 class WebServer {
 
@@ -17,7 +19,7 @@ class WebServer {
 
     var clusters: List<Cluster<Article>> = listOf()
 
-    fun start() {
+    fun start(connection: Connection) {
         val app = Javalin.create()
 
         app.get("/") {
@@ -66,11 +68,23 @@ class WebServer {
             it.contentType(ContentType.JSON).result(root.toString())
         }
 
+        app.get("/originals.json"){
+            val root = JsonArray()
+            // clusters should already be sorted
+            clusters
+                .reversed()
+                .map { cluster ->
+                    for (doc in cluster.docs) {
+                        if (doc.originalUrl.isNotEmpty()) {
+                            root.add(Original.getOriginal(doc.originalUrl, connection).toJson())
+                            break // next cluster
+                        }
+                    }
+                }
+            it.contentType(ContentType.JSON).result(root.toString())
+        }
+
         app.start(7000)
         println("Server running on http://localhost:7000/")
     }
-}
-
-fun main() {
-    WebServer().start()
 }

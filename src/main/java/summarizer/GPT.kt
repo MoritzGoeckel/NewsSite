@@ -28,7 +28,6 @@ class GPT(private val apiKey: String) {
         .readTimeout(60, TimeUnit.SECONDS)
         .build();
 
-    private val gson = GsonBuilder().create()
     private val mediaType: MediaType = "application/json; charset=utf-8".toMediaType()
 
     private val charsPerToken = 4
@@ -123,8 +122,8 @@ class GPT(private val apiKey: String) {
 
         val regex = "Zusammenfassung:([\\s\\S]+)Überschrift:([\\s\\S]+)|Überschrift:([\\s\\S]+)Zusammenfassung:([\\s\\S]+)".toRegex()
 
-        printInfo("GPT", "Request: $requestString")
-        printInfo("GPT", "Answer: $jsonContent")
+        // printInfo("GPT", "Request: $requestString")
+        // printInfo("GPT", "Answer: $jsonContent")
 
         val lines = jsonContent.split("\n")
 
@@ -140,6 +139,8 @@ class GPT(private val apiKey: String) {
         assert(header.isNotEmpty())
         assert(content.isNotEmpty())
 
+        printInfo("GPT", "Generated original: ${header.trim()}")
+
         return Original(header.trim(), content.trim(), images, headerToUrl(header).trim(), text, jsonContent)
     }
 
@@ -150,10 +151,12 @@ class GPT(private val apiKey: String) {
             } else {
                 '_'
             }
-        }.toString()
+        }.toCharArray()
 
-        return if (url.length < 300) url
-               else url.substring(0, 300)
+        val urlStr = String(url)
+
+        return if (urlStr.length < 300) urlStr
+               else urlStr.substring(0, 300)
     }
 
     private fun mapSpecialToNormal(c: Char): Char?{

@@ -85,7 +85,7 @@ fun main() {
         val clusters = sortedClusters(clusterer)
         assignRepresentatives(clusters, articleParser, summarizer, connection)
         server.clusters = clusters
-        server.start()
+        server.start(connection)
     }
 
     // Create originals every 21 seconds
@@ -138,7 +138,8 @@ private fun createOriginal(
     gpt: GPT
 ) {
     val unusedClusters = clusters.filter { it.docs.size >= 3 }       // Clusters with at least 3 doc
-        .takeLast(50 /* max */)              // Only 50 clusters
+        .reversed() // TODO this should be reversed always. Important should always come first
+        .take(50) // Only 50 clusters
         .filter { cluster -> cluster.docs.filter { doc -> doc.originalUrl.isEmpty() }.size > (cluster.docs.size * 0.9) }   // Only with > 70% not used docs
 
     for (cluster in unusedClusters){
