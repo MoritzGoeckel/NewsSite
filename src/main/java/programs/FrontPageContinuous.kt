@@ -85,7 +85,8 @@ fun main() {
         val clusters = sortedClusters(clusterer)
         assignRepresentatives(clusters, articleParser, summarizer, connection)
         server.clusters = clusters
-        server.start(connection)
+        server.connection = connection
+        server.start()
     }
 
     // Create originals every 21 seconds

@@ -1,0 +1,42 @@
+<div class="row">
+    <div class="col-sm-3">
+        <div class="article_wrapper light"><a
+                href="https://www.stern.de/news/--mann-erschiesst-drei-menschen-in-mehrfamilienhaus--33692964.html"
+                class="article">
+            <div class="headlineImage"
+                 style="background-image: url(&quot;https://image.stern.de/6681672/t/31/v5/w1440/r1.7778/-/video-fallback-image.jpg&quot;); background-position: 47% 46%;"></div>
+            <div class="afterArticle"><h3>: Mann erschießt drei Menschen in Mehrfamilienhaus</h3><span
+                    class="sourceLink"><span>stern.de</span><span> +16</span></span></div>
+        </a></div>
+    </div>
+    <div class="col-sm-3">
+        <div class="article_wrapper light"><a
+                href="https://www.zdf.de/nachrichten//nachrichten/wirtschaft/evg-schlichterspruch-bahn-streik-100.html"
+                class="article">
+            <div class="headlineImage"
+                 style="background-image: url(&quot;https://www.zdf.de/assets/bahn-schlichtungsverfahren-100~1280x720?cb=1689607400734&quot;); background-position: 46% 45%;"></div>
+            <div class="afterArticle"><h3>EVG für Annahme von Schlichterspruch</h3><span
+                    class="sourceLink"><span>zdf.de</span><span> +16</span></span></div>
+        </a></div>
+    </div>
+    <div class="col-sm-3">
+        <div class="article_wrapper light"><a
+                href="https://ga.de/news//news/panorama/fadenwuermer-aus-permafrost-nach-46000-jahren-aufgetaut_aid-94639283"
+                class="article">
+            <div class="headlineImage"
+                 style="background-image: url(&quot;https://ga.de/imgs/93/1/7/3/4/4/9/9/1/1/tok_9bced3bfb3ddd056820c5af4875003d9/w1200_h630_x708_y1590_urn_newsml_dpa_com_20090101_230728-99-573108-v2-s2048-d5d1c92f2d9b3b0c.jpeg&quot;); background-position: 51% 57%;"></div>
+            <div class="afterArticle"><h3>Fadenwürmer aus Permafrost nach 46.000 Jahren aufgetaut</h3><span
+                    class="sourceLink"><span>ga.de</span><span> +7</span></span></div>
+        </a></div>
+    </div>
+    <div class="col-sm-3">
+        <div class="article_wrapper light"><a
+                href="https://www.zdf.de/nachrichten//nachrichten/panorama/feuer-autofrachter-fremantle-highway-wattenmeer-100.html"
+                class="article">
+            <div class="headlineImage"
+                 style="background-image: url(&quot;https://www.zdf.de/assets/feuer-auf-frachter-vor-ameland-100~1280x720?cb=1690444605355&quot;); background-position: 46% 62%;"></div>
+            <div class="afterArticle"><h3>500 statt 25 E-Autos auf brennendem Frachter</h3><span
+                    class="sourceLink"><span>zdf.de</span><span> +6</span></span></div>
+        </a></div>
+    </div>
+</div>

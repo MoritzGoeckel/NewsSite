@@ -1,0 +1,36 @@
+<!--suppress LanguageDetectionInspection -->
+<div class="row">
+    <div class="col-sm-9">
+        <div class="article_wrapper dark vertical">
+            <a href="https://www.spiegel.de/kultur/martin-walser-nachruf-zuletzt-einer-der-letzten-a-f4f7f5eb-e714-4241-90f7-fff8251d2f9c"
+               class="article">
+                <div class="headlineImage"
+                     style="background-image: url(&quot;https://cdn.prod.www.spiegel.de/images/1a618cd1-7d12-4b4e-9b2b-78c08bdfcb00_w1280_r1.77_fpx69.67_fpy48.98.jpg&quot;); background-position: 65% 67%;"></div>
+                <div class="afterArticle">
+                    <h2>Zum Tod von Martin Walser </h2>
+                    <div class="description">Martin Walser war fast von Beginn der Bundesrepublik an einer ihrer
+                        bedeutendsten Schriftsteller. Auch die deutsche Debattenkultur ist ohne ihn nicht denkbar.
+                        Nachruf auf einen Beirrbaren.
+                    </div>
+                    <span class="sourceLink"><span>spiegel.de</span><span> +20</span></span>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="article_wrapper light">
+            <a href="https://www.spiegel.de/panorama/berlin-zwei-menschen-sterben-nach-sprung-aus-brennendem-hochhaus-a-d0d533e7-f5f8-49e1-92fc-43f7a87111f1"
+               class="article">
+                <div class="headlineImage"
+                     style="background-image: url(&quot;https://cdn.prod.www.spiegel.de/images/06e8a823-b701-46a7-827b-1eaef5d6a57d_w1280_r1.77_fpx31_fpy52.jpg&quot;); background-position: 47% 46%;"></div>
+                <div class="afterArticle">
+                    <h3>Zwei Menschen sterben nach Sprung aus brennendem Hochhaus</h3>
+                    <div class="description">In einem Hochhaus in Berlin-Kreuzberg ist ein Feuer ausgebrochen. Zwei
+                        Menschen versuchten offenbar, sich durch einen Sprung zu retten und kamen dabei ums Leben.
+                    </div>
+                    <span class="sourceLink"><span>spiegel.de</span><span> +13</span></span>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>

@@ -18,11 +18,19 @@ class WebServer {
     private fun loadBytes(name: String) = File("""${basePath}/${name}""").readBytes()
 
     var clusters: List<Cluster<Article>> = listOf()
+    var connection: Connection? = null
 
-    fun start(connection: Connection) {
+    fun start() {
         val app = Javalin.create()
 
+        val frontPage = FrontPage()
         app.get("/") {
+            it.contentType(ContentType.TEXT_HTML).result(
+                frontPage.html()
+            );
+        }
+
+        app.get("/originals") {
             it.contentType(ContentType.TEXT_HTML).result(
                 loadFile("index.html")
             );
@@ -68,20 +76,22 @@ class WebServer {
             it.contentType(ContentType.JSON).result(root.toString())
         }
 
-        app.get("/originals.json"){
-            val root = JsonArray()
-            // clusters should already be sorted
-            clusters
-                .reversed()
-                .map { cluster ->
-                    for (doc in cluster.docs) {
-                        if (doc.originalUrl.isNotEmpty()) {
-                            root.add(Original.getOriginal(doc.originalUrl, connection).toJson())
-                            break // next cluster
+        if(connection != null) {
+            app.get("/originals.json") {
+                val root = JsonArray()
+                // clusters should already be sorted
+                clusters
+                    .reversed()
+                    .map { cluster ->
+                        for (doc in cluster.docs) {
+                            if (doc.originalUrl.isNotEmpty()) {
+                                root.add(Original.getOriginal(doc.originalUrl, connection!!).toJson())
+                                break // next cluster
+                            }
                         }
                     }
-                }
-            it.contentType(ContentType.JSON).result(root.toString())
+                it.contentType(ContentType.JSON).result(root.toString())
+            }
         }
 
         app.start(7000)
