@@ -21,9 +21,30 @@
     </div>
     <div class="container" id="articles">
         <div class="container">
-            #parse("static/templates/row2.vm")
-            #parse("static/templates/row3.vm")
-            #parse("static/templates/row4.vm")
+
+            #set($idx = 0)
+            #set($max = $articles.size() - 1)
+            #set($row = 0)
+
+            #macro(nextArticle)
+                #if($idx <= $max)
+                    #set($article = $articles[$idx])
+                    #set($idx = $idx + 1)
+                #end
+            #end
+
+            #foreach($index in [0..$max])
+                #if($index > $idx)
+                    #if($row % 3 == 0)
+                        #parse("static/templates/row2.vm")
+                    #elseif($row % 3 == 1)
+                        #parse("static/templates/row3.vm")
+                    #else
+                        #parse("static/templates/row4.vm")
+                    #end
+                    #set($row = $row + 1)
+                #end
+            #end
         </div>
     </div>
     <div class="container" id="footer"></div>

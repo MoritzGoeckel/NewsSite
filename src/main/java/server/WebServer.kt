@@ -5,6 +5,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import io.javalin.Javalin
 import io.javalin.http.ContentType
+import okio.ByteString.Companion.encode
 import structures.Article
 import structures.Original
 import java.io.File
@@ -23,14 +24,78 @@ class WebServer {
     fun start() {
         val app = Javalin.create()
 
-        val frontPage = FrontPage()
-        app.get("/") {
-            it.contentType(ContentType.TEXT_HTML).result(
-                frontPage.html()
-            );
+        if (connection != null) {
+            val frontPage = FrontPage()
+            app.get("/") {
+                val originals = mutableListOf<Original>()
+
+                clusters
+                    .reversed()
+                    .map { cluster ->
+                        for (doc in cluster.docs) {
+                            if (doc.originalUrl.isNotEmpty()) {
+                                originals.add(Original.getOriginal(doc.originalUrl, connection!!))
+                                break // next cluster
+                            }
+                        }
+                    }
+
+                it.result(frontPage.html(originals))
+                    .contentType("text/html; charset=utf-8")
+            }
         }
 
-        app.get("/originals") {
+        addRestEndpoints(app)
+        addStaticEndpoints(app)
+
+        app.start(7000)
+        println("Server running on http://localhost:7000/")
+    }
+
+    private fun addRestEndpoints(app: Javalin) {
+        app.get("/clusters.json") {
+            val root = JsonArray()
+            clusters.map { cluster ->
+                val clusterJson = JsonObject()
+                //clusterJson.addProperty("")
+
+                // all articles
+                val docs = JsonArray()
+                cluster.docs.map { doc -> doc.toJson() }.forEach { docJson -> docs.add(docJson) }
+                clusterJson.add("articles", docs)
+
+                // representative article
+                if (cluster.representative != null) {
+                    clusterJson.add("representative", cluster.representative!!.toJson())
+                }
+
+                clusterJson
+            }.forEach { clusterJson -> root.add(clusterJson) }
+
+            it.contentType(ContentType.JSON).result(root.toString())
+        }
+
+        if (connection != null) {
+            app.get("/originals.json") {
+                val root = JsonArray()
+                // clusters should already be sorted
+                clusters
+                    .reversed()
+                    .map { cluster ->
+                        for (doc in cluster.docs) {
+                            if (doc.originalUrl.isNotEmpty()) {
+                                root.add(Original.getOriginal(doc.originalUrl, connection!!).toJson())
+                                break // next cluster
+                            }
+                        }
+                    }
+                it.contentType(ContentType.JSON).result(root.toString())
+            }
+        }
+    }
+
+    private fun addStaticEndpoints(app: Javalin) {
+        app.get("/articles") {
             it.contentType(ContentType.TEXT_HTML).result(
                 loadFile("index.html")
             );
@@ -53,48 +118,5 @@ class WebServer {
                 loadBytes("favicon.png")
             )
         }
-
-        app.get("/clusters.json") {
-            val root = JsonArray()
-            clusters.map { cluster ->
-                val clusterJson = JsonObject()
-                //clusterJson.addProperty("")
-
-                // all articles
-                val docs = JsonArray()
-                cluster.docs.map { doc -> doc.toJson() }.forEach { docJson -> docs.add(docJson) }
-                clusterJson.add("articles", docs)
-
-                // representative article
-                if(cluster.representative != null) {
-                    clusterJson.add("representative", cluster.representative!!.toJson())
-                }
-
-                clusterJson
-            } .forEach { clusterJson -> root.add(clusterJson) }
-
-            it.contentType(ContentType.JSON).result(root.toString())
-        }
-
-        if(connection != null) {
-            app.get("/originals.json") {
-                val root = JsonArray()
-                // clusters should already be sorted
-                clusters
-                    .reversed()
-                    .map { cluster ->
-                        for (doc in cluster.docs) {
-                            if (doc.originalUrl.isNotEmpty()) {
-                                root.add(Original.getOriginal(doc.originalUrl, connection!!).toJson())
-                                break // next cluster
-                            }
-                        }
-                    }
-                it.contentType(ContentType.JSON).result(root.toString())
-            }
-        }
-
-        app.start(7000)
-        println("Server running on http://localhost:7000/")
     }
 }

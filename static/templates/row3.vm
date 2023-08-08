@@ -1,35 +1,32 @@
 <div class="row">
+    #nextArticle()
     <div class="col-sm-3">
         <div class="article_wrapper" style="height: auto;"><a
                 href="https://www.nw.de/nachrichten/politik/23624820_Moskau-Kiew-fuer-Raketenangriff-in-Russland-verantwortlich.html"
                 class="article">
-            <div class="afterArticle"><h4>Moskau: Kiew für Raketenangriff in Russland verantwortlich</h4>
-                <div class="description">Nach einer Explosion im Stadtzentrum der südrussischen Stadt Taganrog mit mehr
-                    als einem Dutzend Verletzter spricht M...
-                </div>
-                <span class="sourceLink"><span>nw.de</span><span> +6</span></span></div>
+            <div class="afterArticle"><h4>$article.headline</h4>
+                <div class="description">$article.body</div>
+                <span class="sourceLink"><span>$article.links.size() Quellen</span></span></div>
         </a></div>
+        #nextArticle()
         <div class="article_wrapper" style="height: auto;"><a
                 href="https://www.nw.de/nachrichten/politik/23624050_Putsch-im-Niger-General-ernennt-sich-zum-neuen-Machthaber.html"
                 class="article">
-            <div class="afterArticle"><h4>Putsch im Niger: General ernennt sich zum neuen Machthaber</h4>
-                <div class="description">Nach der Entmachtung des nigrischen Präsidenten hat sich der Chef der
-                    Präsidentengarde zum De-facto-Präsidenten ernan...
-                </div>
-                <span class="sourceLink"><span>nw.de</span><span> +5</span></span></div>
+            <div class="afterArticle"><h4>$article.headline</h4>
+                <div class="description">$article.body</div>
+                <span class="sourceLink"><span>$article.links.size() Quellen</span></span></div>
         </a></div>
     </div>
+    #nextArticle()
     <div class="col-sm-9">
         <div class="article_wrapper dark"><a
                 href="https://www.zdf.de/nachrichten//nachrichten/politik/hitzeschutz-hitzeplan-lauterbach-hitzetote-100.html"
                 class="article">
             <div class="headlineImage"
-                 style="background-image: url(&quot;https://www.zdf.de/assets/karl-lauterbach-404~1280x720?cb=1690549536763&quot;); background-position: 46% 53%;"></div>
-            <div class="afterArticle"><h2>Lauterbach will Zahl der Hitzetoten halbieren</h2>
-                <div class="description">Etwa 8.000 Menschen sind vergangenes Jahr in Deutschland an Hitze gestorben.
-                    Gesundheitsminister Lauterbach will diese Zahl halbieren.
-                </div>
-                <span class="sourceLink"><span>zdf.de</span><span> +7</span></span></div>
+                 style="background-image: url(&quot;$article.img&quot;); background-position: 46% 53%;"></div>
+            <div class="afterArticle"><h2>$article.headline</h2>
+                <div class="description">$article.body</div>
+                <span class="sourceLink"><span>$article.links.size() Quellen</span></span></div>
         </a></div>
     </div>
 </div>
