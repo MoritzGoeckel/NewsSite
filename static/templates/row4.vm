@@ -2,44 +2,44 @@
     #nextArticle()
     <div class="col-sm-3">
         <div class="article_wrapper light"><a
-                href="https://www.stern.de/news/--mann-erschiesst-drei-menschen-in-mehrfamilienhaus--33692964.html"
+                href="article/$article.url"
                 class="article">
             <div class="headlineImage"
                  style="background-image: url(&quot;$article.img&quot;); background-position: 47% 46%;"></div>
-            <div class="afterArticle"><h3>$article.headline</h3><span
+            <div class="afterArticle"><h3>$article.renderHeadline()</h3><span
                     class="sourceLink"><span>$article.links.size() Quellen</span></span></div>
         </a></div>
     </div>
     #nextArticle()
     <div class="col-sm-3">
         <div class="article_wrapper light"><a
-                href="https://www.zdf.de/nachrichten//nachrichten/wirtschaft/evg-schlichterspruch-bahn-streik-100.html"
+                href="article/$article.url"
                 class="article">
             <div class="headlineImage"
                  style="background-image: url(&quot;$article.img&quot;); background-position: 46% 45%;"></div>
-            <div class="afterArticle"><h3>$article.headline</h3><span
+            <div class="afterArticle"><h3>$article.renderHeadline()</h3><span
                     class="sourceLink"><span>$article.links.size() Quellen</span></span></div>
         </a></div>
     </div>
     #nextArticle()
     <div class="col-sm-3">
         <div class="article_wrapper light"><a
-                href="https://ga.de/news//news/panorama/fadenwuermer-aus-permafrost-nach-46000-jahren-aufgetaut_aid-94639283"
+                href="article/$article.url"
                 class="article">
             <div class="headlineImage"
                  style="background-image: url(&quot;$article.img&quot;); background-position: 51% 57%;"></div>
-            <div class="afterArticle"><h3>$article.headline</h3><span
+            <div class="afterArticle"><h3>$article.renderHeadline()</h3><span
                     class="sourceLink"><span>$article.links.size() Quellen</span></span></div>
         </a></div>
     </div>
     #nextArticle()
     <div class="col-sm-3">
         <div class="article_wrapper light"><a
-                href="https://www.zdf.de/nachrichten//nachrichten/panorama/feuer-autofrachter-fremantle-highway-wattenmeer-100.html"
+                href="article/$article.url"
                 class="article">
             <div class="headlineImage"
                  style="background-image: url(&quot;$article.img&quot;); background-position: 46% 62%;"></div>
-            <div class="afterArticle"><h3>$article.headline</h3><span
+            <div class="afterArticle"><h3>$article.renderHeadline()</h3><span
                     class="sourceLink"><span>$article.links.size() Quellen</span></span></div>
         </a></div>
     </div>

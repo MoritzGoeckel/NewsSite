@@ -2,30 +2,30 @@
     #nextArticle()
     <div class="col-sm-3">
         <div class="article_wrapper" style="height: auto;"><a
-                href="https://www.nw.de/nachrichten/politik/23624820_Moskau-Kiew-fuer-Raketenangriff-in-Russland-verantwortlich.html"
+                href="article/$article.url"
                 class="article">
-            <div class="afterArticle"><h4>$article.headline</h4>
-                <div class="description">$article.body</div>
+            <div class="afterArticle"><h4>$article.renderHeadline()</h4>
+                <div class="description">$article.firstSentence()</div>
                 <span class="sourceLink"><span>$article.links.size() Quellen</span></span></div>
         </a></div>
         #nextArticle()
         <div class="article_wrapper" style="height: auto;"><a
-                href="https://www.nw.de/nachrichten/politik/23624050_Putsch-im-Niger-General-ernennt-sich-zum-neuen-Machthaber.html"
+                href="article/$article.url"
                 class="article">
-            <div class="afterArticle"><h4>$article.headline</h4>
-                <div class="description">$article.body</div>
+            <div class="afterArticle"><h4>$article.renderHeadline()</h4>
+                <div class="description">$article.firstSentence()</div>
                 <span class="sourceLink"><span>$article.links.size() Quellen</span></span></div>
         </a></div>
     </div>
     #nextArticle()
     <div class="col-sm-9">
         <div class="article_wrapper dark"><a
-                href="https://www.zdf.de/nachrichten//nachrichten/politik/hitzeschutz-hitzeplan-lauterbach-hitzetote-100.html"
+                href="article/$article.url"
                 class="article">
             <div class="headlineImage"
                  style="background-image: url(&quot;$article.img&quot;); background-position: 46% 53%;"></div>
-            <div class="afterArticle"><h2>$article.headline</h2>
-                <div class="description">$article.body</div>
+            <div class="afterArticle"><h2>$article.renderHeadline()</h2>
+                <div class="description">$article.firstSentence()</div>
                 <span class="sourceLink"><span>$article.links.size() Quellen</span></span></div>
         </a></div>
     </div>

@@ -186,6 +186,7 @@ private fun createOriginal(
             }
             val original = gpt.generateOriginal(text, images)
             original.insertInto(connection)
+            original.getSources(connection) // populate cache
             cluster.docs.forEach { it.setOriginalUrl(original.url, connection) }
             break
         }

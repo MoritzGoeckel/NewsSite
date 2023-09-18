@@ -4,6 +4,8 @@ import grouping.Cluster
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.ContentType
 import okio.ByteString.Companion.encode
 import structures.Article
@@ -28,7 +30,6 @@ class WebServer {
             val frontPage = FrontPage()
             app.get("/") {
                 val originals = mutableListOf<Original>()
-
                 clusters
                     .reversed()
                     .map { cluster ->
@@ -47,9 +48,20 @@ class WebServer {
 
         addRestEndpoints(app)
         addStaticEndpoints(app)
+        addArticleEndpoint(app)
 
         app.start(7000)
         println("Server running on http://localhost:7000/")
+    }
+
+    private fun addArticleEndpoint(app: Javalin) {
+        app.get("article/{id}") {
+            val article = Original.getOriginal(it.pathParam("id"), connection!!)
+            val page = ArticlePage(articleFromOriginal(article))
+
+            it.result(page.html())
+                .contentType("text/html; charset=utf-8")
+        }
     }
 
     private fun addRestEndpoints(app: Javalin) {

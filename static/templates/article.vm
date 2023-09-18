@@ -21,30 +21,23 @@
     </div>
     <div class="container" id="articles">
         <div class="container">
-
-            #set($idx = 0)
-            #set($max = $articles.size() - 1)
-            #set($row = 0)
-
-            #macro(nextArticle)
-                #if($idx <= $max)
-                    #set($article = $articles[$idx])
-                    #set($idx = $idx + 1)
-                #end
-            #end
-
-            #foreach($index in [0..$max])
-                #if($index > $idx)
-                    #if($row % 3 == 0)
-                        #parse("static/templates/row2.vm")
-                    #elseif($row % 3 == 1)
-                        #parse("static/templates/row3.vm")
-                    #else
-                        #parse("static/templates/row4.vm")
-                    #end
-                    #set($row = $row + 1)
-                #end
-            #end
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="article_wrapper dark vertical">
+                        <div class="article singleArticle">
+                            <div class="headlineImage"
+                                 style="background-image: url(&quot;$article.img&quot;); background-position: 65% 67%;"></div>
+                            <div class="afterArticle">
+                                <h2>$article.renderHeadline()</h2>
+                                <div class="description">$article.body</div>
+                                #foreach( $link in $article.links )
+                                    <a href="$link.url" class="sourceLink sourceLinkListItem">$link.source: $link.header</a>
+                                #end
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="container" id="footer"></div>
