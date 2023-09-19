@@ -17,13 +17,12 @@
 
 <div class="container" id="outer">
     <div class="container" id="title">
-        <h1>Nachrichten</h1>
+        <h1><a href="/">Nachrichten</a></h1>
     </div>
     <div class="container" id="articles">
         <div class="container">
-            <div class="row">
                 <div class="col-sm-12">
-                    <div class="article_wrapper dark vertical">
+                    <div class="article_wrapper vertical">
                         <div class="article singleArticle">
                             <div class="headlineImage"
                                  style="background-image: url(&quot;$article.img&quot;); background-position: 65% 67%;"></div>
@@ -31,12 +30,11 @@
                                 <h2>$article.renderHeadline()</h2>
                                 <div class="description">$article.body</div>
                                 #foreach( $link in $article.links )
-                                    <a href="$link.url" class="sourceLink sourceLinkListItem">$link.source: $link.header</a>
+                                    <a href="$link.url" class="sourceLink sourceLinkListItem">$link.sourceName(): $link.header</a>
                                 #end
                             </div>
                         </div>
                     </div>
-                </div>
             </div>
         </div>
     </div>
