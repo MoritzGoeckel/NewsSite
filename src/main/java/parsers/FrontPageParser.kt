@@ -8,7 +8,7 @@ import structures.Language
 import printWarning
 import java.io.File
 
-class FrontPageParser(private val textProcessor: TextProcessor) {
+class FrontPageParser() {
     fun getLinkHeadlines(document: Document, base_url: String): List<Article>{
         val result = arrayListOf<Article>()
         val links = document.getElementsByTag("a")
@@ -19,19 +19,19 @@ class FrontPageParser(private val textProcessor: TextProcessor) {
 
             val h1s = link.getElementsByTag("h1")
             if(!h1s.isEmpty()) {
-                result.add(Article(h1s.first()!!.text(), link.text(), url, base_url, textProcessor))
+                result.add(Article(h1s.first()!!.text(), link.text(), url, base_url))
                 continue
             }
 
             val h2s = link.getElementsByTag("h2")
             if(!h2s.isEmpty()) {
-                result.add(Article(h2s.first()!!.text(), link.text(), url, base_url, textProcessor))
+                result.add(Article(h2s.first()!!.text(), link.text(), url, base_url))
                 continue
             }
 
             val h3s = link.getElementsByTag("h3")
             if(!h3s.isEmpty()) {
-                result.add(Article(h3s.first()!!.text(), link.text(), url, base_url, textProcessor))
+                result.add(Article(h3s.first()!!.text(), link.text(), url, base_url))
                 continue
             }
 
@@ -45,7 +45,7 @@ class FrontPageParser(private val textProcessor: TextProcessor) {
                     // TODO support multiple text fields
                     val text = texts.maxByOrNull { it.length }
                     if(text != null) {
-                        result.add(Article(text, text, url, base_url, textProcessor))
+                        result.add(Article(text, text, url, base_url))
                     }
                     break
                 }
@@ -60,7 +60,7 @@ class FrontPageParser(private val textProcessor: TextProcessor) {
             .map { element ->
                 val titles = element.attributes().filter { it.key.contains("title") }.map(Attribute::value)
                 val title = if(titles.size == 1) titles.first() else element.text()
-                Article(title, element.text(), element.attr("href").normalizeUrl(baseUrl), baseUrl, textProcessor)
+                Article(title, element.text(), element.attr("href").normalizeUrl(baseUrl), baseUrl)
             }
     }
 
@@ -83,18 +83,4 @@ class FrontPageParser(private val textProcessor: TextProcessor) {
 
         return result
     }
-}
-
-fun main() {
-    val page = FrontPageParser(TextProcessor(Language.DE));
-    val articles = mutableListOf<Article>()
-    for (url in File("data/pages/de.txt").readLines()) {
-        val found = page.extract(url)
-        println("Found ${found.size} for $url")
-        found.map { println(it.header) }
-        println()
-        articles.addAll(found)
-    }
-
-    println(articles.distinct().size)
 }

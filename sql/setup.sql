@@ -1,3 +1,7 @@
+DROP TABLE articles;
+DROP TABLE summary;
+DROP INDEX idx_articles_hash;
+
 CREATE DATABASE news_site
     WITH
     OWNER = postgres
@@ -5,39 +9,41 @@ CREATE DATABASE news_site
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
 
-CREATE TABLE originals (
-    url VARCHAR (600) UNIQUE PRIMARY KEY,
+CREATE TABLE summary (
+    id integer primary key generated always as identity,
+    url VARCHAR (600) NOT NULL DEFAULT '',
     head VARCHAR (500) NOT NULL,
     content VARCHAR NOT NULL,
-    media VARCHAR,
+    media VARCHAR DEFAULT '',
     raw_in VARCHAR NOT NULL,
     raw_out VARCHAR NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO summary (head, content, raw_in, raw_out) VALUES ('', '', '', '');
 
 CREATE TABLE articles (
-	hash VARCHAR (300) PRIMARY KEY,
-	head VARCHAR (500) NOT NULL,
-	content VARCHAR,
-	url VARCHAR (255) UNIQUE NOT NULL,
+	id integer primary key generated always as identity,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- base
+	hash VARCHAR (351) UNIQUE NOT NULL,
+	preview_head VARCHAR (503) NOT NULL,
+	preview_content VARCHAR DEFAULT '',
+	preview_url VARCHAR (458) UNIQUE NOT NULL,
 	source VARCHAR (70) NOT NULL,
-	original_url VARCHAR (300) NOT NULL DEFAULT '',
-    CONSTRAINT fk_original
-          FOREIGN KEY(original_url)
-          REFERENCES originals(url),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+	-- summary
+	summary_id integer DEFAULT 1,
+    CONSTRAINT fk_summary
+          FOREIGN KEY(summary_id)
+          REFERENCES summary(id),
+    -- details
+    head VARCHAR(501) DEFAULT '',
+    description VARCHAR DEFAULT '',
+    content VARCHAR DEFAULT '',
+	url VARCHAR (456) UNIQUE DEFAULT '',
+    image VARCHAR(402) DEFAULT '',
+	image_metadata VARCHAR (502) DEFAULT '',
+	published_at TIMESTAMP
 );
 
-CREATE TABLE article_details (
-    article_url VARCHAR (300) PRIMARY KEY,
-    url VARCHAR (300),
-	title VARCHAR (500) NOT NULL,
-	description VARCHAR,
-	content VARCHAR,
-	summary VARCHAR,
-	image VARCHAR (300),
-	image_metadata VARCHAR (500),
-	published_at TIMESTAMP,
-	created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-	CONSTRAINT fk_articles FOREIGN KEY(article_url) REFERENCES articles(url)
-);
+CREATE UNIQUE INDEX idx_articles_hash ON articles(hash);

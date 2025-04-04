@@ -10,6 +10,7 @@ import printError
 import printInfo
 import java.sql.DriverManager
 
+/*
 fun main() {
     val config = Configuration()
     val textProcessor = TextProcessor(Language.DE)
@@ -42,4 +43,4 @@ fun main() {
     }
 
     // TODO handle articlesQueue with clusterer / details
-}
+}*/

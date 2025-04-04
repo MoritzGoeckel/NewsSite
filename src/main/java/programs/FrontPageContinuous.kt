@@ -16,14 +16,14 @@ import printError
 import printInfo
 import printTrace
 import printWarning
-import server.WebServer
+// import server.WebServer
 import summarizer.GPT
 import summarizer.Summarizer
 import java.net.URL
 import java.sql.Connection
 import java.sql.DriverManager
 import kotlin.concurrent.thread
-
+/*
 class ArticleDownloader (textProcessor: TextProcessor, private val urls: List<String>) {
     private val frontPageParser: FrontPageParser = FrontPageParser(textProcessor)
 
@@ -279,4 +279,4 @@ private fun insertQueueIntoClusterer(articlesQueue: MutableList<Article>, insert
         }
     }
     articlesQueue.clear()
-}
+}*/

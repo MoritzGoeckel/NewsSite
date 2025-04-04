@@ -1,9 +1,11 @@
 package grouping
 
 import printTrace
+import structures.WithWords
 import structures.Words
+import javax.print.Doc
 
-class Clusterer<DocType : Words> {
+class Clusterer<DocType : WithWords> {
     private val clusterCreationThreshold = 0.4
     private val clusterSizeThresholdForMergeAttempt = 3
     private val clusterSimilarityMergeThreshold = 0.4
@@ -16,39 +18,48 @@ class Clusterer<DocType : Words> {
         return clusters
     }
 
-    fun remove(doc: DocType){
-        val cluster = docToCluster[doc]
-        if (cluster != null) {
-            // Remove / count down the words in the cluster, remove the document
-            val removedWords = cluster.remove(doc)
+    fun removeIf(predicate: (DocType) -> Boolean): Int /* num removed */ {
+        val toBeRemoved = docToCluster.filterKeys(predicate).keys
+        var result = 0
+        toBeRemoved.forEach {
+            if(remove(it)) ++result
+        }
+        return result
+    }
 
-            // Remove the cluster from the wordToCluster index, for words that hit a count of zero
-            for(word in removedWords){
-                wordToCluster.computeIfPresent(word) {_, clusters ->
-                    clusters.remove(cluster)
-                    if(clusters.isNotEmpty()) {
-                        clusters
-                    } else {
-                        null
-                    }
+    fun remove(doc: DocType): Boolean {
+        val cluster = docToCluster.remove(doc) ?: return false
+
+        // Remove / count down the words in the cluster, remove the document
+        val removedWords = cluster.remove(doc)
+
+        // Remove the cluster from the wordToCluster index, for words that hit a count of zero
+        for(word in removedWords){
+            wordToCluster.computeIfPresent(word) {_, clusters ->
+                clusters.remove(cluster)
+                if(clusters.isNotEmpty()) {
+                    clusters
+                } else {
+                    null
                 }
             }
-
-            if(cluster.docs.isEmpty()){
-                assert(cluster.words.isEmpty())
-                clusters.remove(cluster)
-            }
         }
-        docToCluster.remove(doc)
+
+        if(cluster.docs.isEmpty()){
+            assert(cluster.words.isEmpty())
+            clusters.remove(cluster)
+        }
+
+        return true
     }
 
     fun add(doc: DocType){
         // Find most similar cluster
         var bestCluster: Cluster<DocType>? = null
         var bestSimilarity = Double.MIN_VALUE
-        doc.words.forEach { word ->
+        doc.getWords().words.forEach { word ->
             wordToCluster[word.key]?.forEach { cluster ->
-                val similarity = doc.similarity(cluster.words)
+                val similarity = doc.getWords().similarity(cluster.words)
                 if(similarity > bestSimilarity){
                     bestSimilarity = similarity
                     bestCluster = cluster

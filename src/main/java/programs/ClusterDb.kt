@@ -8,7 +8,7 @@ import structures.Article
 import structures.Language
 import structures.Words
 import java.sql.DriverManager
-
+/*
 fun main() {
     val config = Configuration()
     val processor = TextProcessor(Language.DE)
@@ -57,4 +57,4 @@ fun main() {
                           cluster.docs.forEach { println(it.text) }
                           println()
                       }
-}
+}*/

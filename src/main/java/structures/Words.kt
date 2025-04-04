@@ -1,6 +1,10 @@
 package structures
 
-open class Words(val text: String, public val words: MutableMap<String, Int>){
+interface WithWords {
+    fun getWords(): Words
+}
+
+open class Words(val text: String, val words: MutableMap<String, Int>) : WithWords{
     constructor(): this("", mutableMapOf())
 
     fun remove(word: String, num: Int): Int /*remaining*/ {
@@ -68,6 +72,10 @@ open class Words(val text: String, public val words: MutableMap<String, Int>){
                 }
             }
         }
+    }
+
+    override fun getWords(): Words {
+        return this
     }
 
     override fun toString(): String {

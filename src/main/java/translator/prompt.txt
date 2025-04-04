@@ -1,0 +1,1 @@
+Output only the translation. Translate this {source_language} sentence into english:

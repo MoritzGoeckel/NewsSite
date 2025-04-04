@@ -17,7 +17,7 @@ class Configuration {
     }
 
     fun postgresUrl(): String {
-        return "jdbc:postgresql://localhost:5432/news_site"
+        return "jdbc:postgresql://localhost:5432/" // news_site
     }
 
     fun openAIKey(): String {

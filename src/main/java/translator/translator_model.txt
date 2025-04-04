@@ -1,0 +1,5 @@
+# ollama create translator -f
+# ollama run translator
+
+FROM gemma3:1b
+PARAMETER temperature 0.1 # low creativity

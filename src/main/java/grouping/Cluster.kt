@@ -1,8 +1,12 @@
 package grouping
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonNull
+import com.google.gson.JsonObject
+import structures.WithWords
 import structures.Words
 
-class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<String, MutableSet<Cluster<DocType>>>) {
+class Cluster<DocType : WithWords>(newDocs: DocType, wordToCluster: MutableMap<String, MutableSet<Cluster<DocType>>>) {
     val docs = mutableListOf<DocType>()
     val words = Words()
 
@@ -22,7 +26,7 @@ class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<Strin
 
     fun add(newDocs: DocType, wordToCluster: MutableMap<String, MutableSet<Cluster<DocType>>>){
         docs.add(newDocs)
-        newDocs.words.forEach {
+        newDocs.getWords().words.forEach {
             wordToCluster.getOrPut(it.key) { mutableSetOf() }.add(this)
             this.words.words[it.key] = this.words.words.getOrDefault(it.key, 0) + it.value
         }
@@ -45,7 +49,7 @@ class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<Strin
     fun remove(doc: DocType): List<String> /*removed words*/ {
         val removedWords = mutableListOf<String>()
         docs.remove(doc)
-        for((word, num) in doc.words){
+        for((word, num) in doc.getWords().words){
             val remaining = words.remove(word, num)
             if (remaining == 0){
                 removedWords.add(word)
@@ -55,6 +59,6 @@ class Cluster<DocType : Words>(newDocs: DocType, wordToCluster: MutableMap<Strin
     }
 
     fun sortByRepresentative() {
-        docs.sortByDescending { it.similarity(words) / it.words.size.toDouble() }
+        docs.sortByDescending { it.getWords().similarity(words) / it.getWords().words.size.toDouble() }
     }
 }
