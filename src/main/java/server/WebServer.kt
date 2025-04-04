@@ -9,6 +9,11 @@ import structures.Article
 import structures.Original
 import java.io.File
 import java.sql.Connection
+import java.sql.Timestamp
+import java.time.Duration
+import java.time.Instant
+import java.time.temporal.Temporal
+import java.time.temporal.TemporalAmount
 
 class WebServer(val connection: Connection) {
 
@@ -19,9 +24,9 @@ class WebServer(val connection: Connection) {
 
     // TODO maybe make private and get from db, just receive signal of change
     var clusters = listOf<Cluster<Article>>()
-    var articles = listOf<Article>()
+    // private var articles = listOf<Article>()
 
-    fun start() {
+    fun start(): WebServer {
         val app = Javalin.create()
 
         addFrontPage(app)
@@ -32,6 +37,20 @@ class WebServer(val connection: Connection) {
 
         app.start(7000)
         println("Server running on http://localhost:7000/")
+        return this
+    }
+
+    private fun selectArticles(): List<Article> {
+        val selectStmt = connection.prepareStatement("SELECT * FROM articles WHERE created_at > ? AND created_at <= ? ORDER BY created_at ASC")
+        selectStmt.setTimestamp(1, Timestamp.from(Instant.now().minus(Duration.ofHours(24))))
+        selectStmt.setTimestamp(2, Timestamp.from(Instant.now()))
+
+        val result = selectStmt.executeQuery()
+        val localArticles = mutableListOf<Article>()
+        while (result.next()){
+            localArticles.add(Article(result))
+        }
+        return localArticles.reversed() // We want the newest on top
     }
 
     private fun addFrontPage(app: Javalin){
@@ -44,7 +63,7 @@ class WebServer(val connection: Connection) {
     private fun addArticlesPage(app: Javalin) {
         app.get("/articles") {
             val page = ArticlesPage()
-            it.result(page.html(articles))
+            it.result(page.html(selectArticles()))
                 .contentType("text/html; charset=utf-8")
         }
     }
@@ -62,7 +81,7 @@ class WebServer(val connection: Connection) {
     private fun addRestEndpoints(app: Javalin) {
         app.get("/articles.json") { it ->
             val root = JsonArray()
-            articles.forEach { article -> root.add(article.toJson()) }
+            selectArticles().forEach { article -> root.add(article.toJson()) }
             it.contentType(ContentType.JSON).result(root.toString())
         }
 
@@ -83,12 +102,6 @@ class WebServer(val connection: Connection) {
     }
 
     private fun addStaticEndpoints(app: Javalin) {
-        app.get("/articles") {
-            it.contentType(ContentType.TEXT_HTML).result(
-                loadFile("index.html")
-            );
-        }
-
         app.get("/styles.css") {
             it.contentType(ContentType.TEXT_CSS).result(
                 loadFile("styles.css")
@@ -96,7 +109,7 @@ class WebServer(val connection: Connection) {
         }
 
         app.get("/components.js") {
-            it.contentType(ContentType.JAVASCRIPT).result(
+            it.contentType(ContentType.JAVASCRIPT_MODERN).result(
                 loadFile("components.js")
             )
         }

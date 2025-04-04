@@ -1,3 +1,5 @@
+package util
+
 import java.time.Duration
 
 class Configuration {
@@ -13,7 +15,7 @@ class Configuration {
     }
 
     fun postgresPassword(): String {
-        return "manager"
+        return "postgres" // manager
     }
 
     fun postgresUrl(): String {
@@ -31,9 +33,9 @@ class Configuration {
             if (!maybe.isNullOrEmpty()) {
                 // SimpleLogger.DEFAULT_LOG_LEVEL_KEY
                 System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", maybe);
-                printInfo("Configuration", "$variableName=${maybe}")
+                printInfo("util.Configuration", "$variableName=${maybe}")
             } else {
-                printInfo("Configuration", "$variableName=UNSET")
+                printInfo("util.Configuration", "$variableName=UNSET")
             }
         }
 
@@ -43,7 +45,7 @@ class Configuration {
             if (!maybe.isNullOrEmpty()) {
                 frontPageScrapingInterval = Duration.ofSeconds(Integer.parseInt(maybe).toLong())
             }
-            printInfo("Configuration", "$variableName=${frontPageScrapingInterval}")
+            printInfo("util.Configuration", "$variableName=${frontPageScrapingInterval}")
         }
 
         run {
@@ -52,7 +54,7 @@ class Configuration {
             if(!maybe.isNullOrEmpty()){
                 openAIKey = maybe
             }
-            printInfo("Configuration", "$variableName=${openAIKey}")
+            printInfo("util.Configuration", "$variableName=${openAIKey}")
         }
     }
 }

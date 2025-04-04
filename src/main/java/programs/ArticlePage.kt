@@ -3,7 +3,7 @@ package programs
 import parsers.ArticlePageParser
 import structures.Language
 import summarizer.Summarizer
-import printError
+import util.printError
 
 fun main() {
     val articlePageParser = ArticlePageParser()

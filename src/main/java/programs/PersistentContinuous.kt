@@ -1,17 +1,16 @@
 package programs
 
-import Configuration
+import grouping.Cluster
 import grouping.Clusterer
 import ingress.ContainsCache
+import parsers.ArticlePageParser
 import parsers.FrontPageParser
 import processors.TextProcessor
+import server.WebServer
 import structures.Article
 import structures.Language
+import util.*
 import java.io.File
-import printError
-import printWarning
-import processors.Transformer
-import server.WebServer
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.Timestamp
@@ -19,7 +18,6 @@ import java.time.Duration
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.concurrent.thread
 
 private const val num_articles = 2000
 
@@ -30,12 +28,17 @@ fun main() {
     val textProcessor = TextProcessor(Language.DE)
     val frontPageParser = FrontPageParser()
     val containsCache = ContainsCache()
+    val articleParser = ArticlePageParser()
 
     val connection = DriverManager.getConnection(config.postgresUrl(), config.postgresUser(), config.postgresPassword())
     assert(connection.isValid(0))
     containsCache.fill(connection)
 
+    // TODO
+    // connection.prepareStatement("DELETE FROM articles;").execute()
+
     val server = WebServer(connection)
+        .start()
 
     val articleQueue: Queue<Article> = ConcurrentLinkedQueue()
 
@@ -48,8 +51,7 @@ fun main() {
         downloadLinks(urlsQueue, frontPageParser, articleQueue)
     }
 
-    // TODO update server.articles, or maybe just trigger getting from db
-
+    // TODO: Download details
     //val writeToDBQueue: Queue<Article> = ConcurrentLinkedQueue()
     // val articleParser = ArticlePageParser()
     //downloadDetails(articleParser, articleQueue, writeToDBQueue)
@@ -59,15 +61,18 @@ fun main() {
     val clusterer = Clusterer<Article>()
 
     updateCluster(connection, clusterer) {
-        server.clusters = clusterer.clusters()
-        // TODO or maybe get from db
+        // Update server's clusters
+        server.clusters = sortedClusters(clusterer)
+    }
+
+    val numSegments = 4
+    for(segment in 0 until numSegments){
+        downloadDetails(connection, articleParser, segment, numSegments)
     }
 
     waitForever()
 
-    // use for clustering
-
-    // use for summary
+    // use to create summary / originals
 
     // populate media / image size
 
@@ -145,36 +150,16 @@ fun main() {
     }*/
 }
 
+private fun sortedClusters(clusterer: Clusterer<Article>): List<Cluster<Article>> {
+    return clusterer.clusters().filter { it.docs.size > 2 }
+        .filter { cluster -> cluster.docs.distinctBy { it.source }.size >= 2 }
+        .sortedBy { cluster -> cluster.docs.distinctBy { it.source }.size }
+        .reversed() // We want the top articles first
+}
+
 fun waitForever() {
     while (true){
         Thread.sleep(Duration.ofSeconds(3))
-    }
-}
-
-class Worker(fn: () -> Unit){
-    private var interrupted: Boolean = false
-    private var thread: Thread? = null
-    private val fn: () -> Unit
-
-    init {
-        this.fn = fn
-    }
-
-    fun interrupt(){
-        interrupted = true
-    }
-
-    fun start(): Worker {
-        this.thread = thread(start = true) {
-            while (!interrupted) {
-                try {
-                    fn()
-                } catch (e: Exception){
-                    printError("Worker", e.toString())
-                }
-            }
-        }
-        return this
     }
 }
 
@@ -191,7 +176,12 @@ fun updateCluster(connection: Connection, clusterer: Clusterer<Article>, onClust
             while (result.next()){
                 articles.add(Article(result))
             }
-            lastSeen = articles.lastOrNull()?.created_at
+
+            val last = articles.lastOrNull()
+            if(last != null){
+                lastSeen = last.created_at
+            }
+
             printError("Clusterer", "new articles: ${articles.size}")
 
             // Remove
@@ -210,7 +200,7 @@ fun updateCluster(connection: Connection, clusterer: Clusterer<Article>, onClust
     }.start()
 }
 
-fun downloadLinks(urls: Queue<Pair<Instant, String>>, frontPageParser: FrontPageParser, queue: Queue<Article>): Worker{
+fun downloadLinks(urls: Queue<Pair<Instant, String>>, frontPageParser: FrontPageParser, queue: Queue<Article>): Worker {
     return Worker {
         while (true) {
             val pair = urls.poll()
@@ -231,36 +221,65 @@ fun downloadLinks(urls: Queue<Pair<Instant, String>>, frontPageParser: FrontPage
             try {
                 val found = frontPageParser.extract(url)
                 found.forEach { queue.add(it) }
-                printError("ArticleDownloader", "Found ${found.size}")
+                printInfo("ArticleDownloader", "Found ${found.size}")
             } catch (e: Exception) {
                 printError("ArticleDownloader", "Failed downloading: $url ${e.message}")
+                e.printStackTrace()
             }
             urls.add(Pair(Instant.now().plusSeconds(rand.nextLong(60, 90)), url))
         }
     }.start()
 }
 
-/*
-fun downloadDetails(articleParser: ArticlePageParser, inputQueue: Queue<Article>, outputQueue: Queue<Article>): Worker{
-    return Worker {
-        val article = inputQueue.poll()
-        if(article != null) {
-            val details = articleParser.extract(article.url)
-            // use datils
-            outputQueue.add(article)
-        } else {
-            Thread.sleep(Duration.ofSeconds(5))
-        }
-    }.start();
-}*/
-
-fun writeToDb(connection: Connection, inputQueue: Queue<Article>): Worker{
+fun writeToDb(connection: Connection, inputQueue: Queue<Article>): Worker {
     return Worker {
         val article = inputQueue.poll()
         if(article != null) {
             article.insertInto(connection)
         } else {
             Thread.sleep(Duration.ofSeconds(5))
+        }
+    }.start();
+}
+
+fun downloadDetails(connection: Connection, articleParser: ArticlePageParser, segment: Int, numSegments: Int): Worker{
+    var lastSeen = Instant.now().minus(Duration.ofHours(24))
+    return Worker {
+        val selectStmt = connection.prepareStatement("SELECT * FROM articles " +
+                "WHERE created_at > ? AND created_at <= ? " +
+                "AND content = '' AND head = '' " +
+                "AND (id % $numSegments) = $segment ORDER BY created_at ASC")
+
+        while (true) {
+            selectStmt.setTimestamp(1, Timestamp.from(lastSeen))
+            selectStmt.setTimestamp(2, Timestamp.from(Instant.now()))
+
+            val result = selectStmt.executeQuery()
+            val articles = mutableListOf<Article>()
+            while (result.next()) {
+                articles.add(Article(result))
+            }
+
+            if(articles.isEmpty()){
+                Thread.sleep(Duration.ofSeconds(5))
+                continue
+            }
+
+            val last = articles.lastOrNull()
+            if (last != null) {
+                lastSeen = last.created_at
+            }
+            articles.shuffle()
+            articles.forEach {
+                try {
+                    val extendedArticle = articleParser.fill(it)
+                    extendedArticle.updateInto(connection)
+                    printInfo("FillDetails", "Filled successfully")
+                } catch (e: Exception){
+                    printError("FillDetails", e.toString())
+                    e.printStackTrace()
+                }
+            }
         }
     }.start();
 }
@@ -398,11 +417,6 @@ fun writeToDb(connection: Connection, inputQueue: Queue<Article>): Worker{
 }*/
 
 /*
-private fun sortedClusters(clusterer: Clusterer<Article>): List<Cluster<Article>> {
-    return clusterer.clusters().filter { it.docs.size > 2 }
-        .filter { cluster -> cluster.docs.distinctBy { it.source }.size >= 2 }
-        .sortedBy { cluster -> cluster.docs.distinctBy { it.source }.size }
-}
 
 private fun insertQueueIntoClusterer(articlesQueue: MutableList<Article>, insertedDocs: MutableList<Article>, clusterer: Clusterer<Article>) {
     articlesQueue.forEach {

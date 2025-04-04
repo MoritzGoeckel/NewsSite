@@ -3,7 +3,7 @@ package processors
 import structures.Language
 import structures.folderName
 import java.io.File
-import printInfo
+import util.printInfo
 
 fun readLineConfig(path: String, language: Language): List<String> {
     val result = mutableListOf<String>()

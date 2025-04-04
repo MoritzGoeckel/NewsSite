@@ -1,8 +1,5 @@
 package programs
 
-import Configuration
-import summarizer.GPT
-
 fun main() {
     val text = "Dresden wird einen neuen wichtigen Arbeitgeber bekommen: Der taiwanische Chiphersteller TSMC hat angekündigt, ein Werk in der sächsischen Landeshauptstadt zu errichten. Insgesamt sollen zehn Milliarden Euro in das Projekt investiert werden. Die Entscheidung kommt vor dem Hintergrund des Ziels der EU, den Anteil der europäischen Chipproduktion bis 2023 auf 20% zu erhöhen. Mit der Ansiedlung von TSMC in Dresden wird die gesamte europäische Wirtschaft davon profitieren, da Europa dadurch weniger abhängig von außereuropäischen Zulieferern wird.\n" +
             "\n" +

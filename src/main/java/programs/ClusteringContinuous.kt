@@ -1,7 +1,7 @@
 package programs
 
 import grouping.Clusterer
-import printInfo
+import util.printInfo
 import processors.TextProcessor
 import structures.Language
 import structures.Words

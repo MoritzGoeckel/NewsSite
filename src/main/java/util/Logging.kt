@@ -1,7 +1,11 @@
+package util
+
 import org.slf4j.LoggerFactory
 
+val showInfo = false
+
 fun printInfo(location: String, message: String){
-    LoggerFactory.getLogger(location).info(message)
+    if(showInfo) LoggerFactory.getLogger(location).info(message)
 }
 
 fun printWarning(location: String, message: String){

@@ -1,6 +1,6 @@
 package ingress
 
-import printInfo
+import util.printInfo
 import structures.Article
 import java.sql.Connection
 

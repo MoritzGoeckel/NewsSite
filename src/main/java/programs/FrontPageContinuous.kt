@@ -1,28 +1,6 @@
 package programs
 
-import Configuration
-import graphics.downloadImage
-import graphics.getVisualCenter
-import grouping.Cluster
-import grouping.Clusterer
-import ingress.ContainsCache
-import parsers.ArticlePageParser
-import parsers.FrontPageParser
-import processors.TextProcessor
-import structures.Article
-import structures.Language
-import java.io.File
-import printError
-import printInfo
-import printTrace
-import printWarning
 // import server.WebServer
-import summarizer.GPT
-import summarizer.Summarizer
-import java.net.URL
-import java.sql.Connection
-import java.sql.DriverManager
-import kotlin.concurrent.thread
 /*
 class ArticleDownloader (textProcessor: TextProcessor, private val urls: List<String>) {
     private val frontPageParser: FrontPageParser = FrontPageParser(textProcessor)
@@ -46,7 +24,7 @@ class ArticleDownloader (textProcessor: TextProcessor, private val urls: List<St
 private const val num_articles = 2000
 
 fun main() {
-    val config = Configuration()
+    val config = util.Configuration()
     val textProcessor = TextProcessor(Language.DE)
     val urls = File("data/pages/de.txt").readLines()
     val downloader = ArticleDownloader(textProcessor, urls)

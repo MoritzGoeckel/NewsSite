@@ -1,9 +1,7 @@
 package grouping
 
-import printTrace
+import util.printTrace
 import structures.WithWords
-import structures.Words
-import javax.print.Doc
 
 class Clusterer<DocType : WithWords> {
     private val clusterCreationThreshold = 0.4

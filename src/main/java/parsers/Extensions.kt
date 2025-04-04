@@ -1,13 +1,13 @@
 package parsers
 
-import printTrace
+import util.printTrace
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
 import org.jsoup.parser.Tag
 import org.jsoup.select.NodeVisitor
+import util.printError
 import java.net.URI
-import java.net.URISyntaxException
 
 fun Tag.isHeadline(): Boolean {
     val name = this.normalName()
@@ -15,7 +15,7 @@ fun Tag.isHeadline(): Boolean {
     return false
 }
 
-fun String.removeUrlPrefixes(): String{
+/*fun String.removeUrlPrefixes(): String{
     var result = this
     if(this.startsWith("https://")) result = this.removePrefix("https://")
     else if(this.startsWith("http://")) result = this.removePrefix("http://")
@@ -36,27 +36,36 @@ fun String.getHost(): String{
     } catch (e: URISyntaxException){
         ""
     }
+}*/
+
+fun String.toURI(): URI?{
+    return try {
+        URI.create(this)
+    } catch (e: IllegalArgumentException){
+        null
+    }
 }
 
-fun String.normalizeUrl(base_url: String): String{
-    val baseWithoutPrefix = base_url.removeUrlPrefixes()
-    val urlWithoutPrefix = this.removeUrlPrefixes()
+fun String.normalizeUrl(base_url: String): String {
 
-    val baseHost = base_url.getHost()
-    val host = this.getHost()
+    val base = URI.create(base_url)
+    var uri = toURI() ?: "$base_url/$this".toURI()
 
-    if(urlWithoutPrefix.startsWith(baseWithoutPrefix)) return this; // already absolute
-
-    // TODO use URI instead of self build things
-    // uri.isAbsolute
-    if(this.isUrlAbsolute() && host != baseHost){
-        // Url is already absolute but points to a different domain
-        printTrace("Extensions", "Discarding $this, because it is not part of $base_url")
-        return ""; // discard
+    if(uri == null){
+        // printError("NormalizeUrl","Can't resolve URL for base=$base url=$this")
+        return ""
     }
 
-    val separator = if(this.startsWith("/") || base_url.endsWith("/")) "" else "/"
-    return base_url + separator + this
+    if(!uri.isAbsolute){
+        uri = URI.create("$base_url/$this")
+    }
+
+    if (uri!!.host != null && base.host != uri.host) {
+        printTrace("Extensions", "Discarding $this, because it is not part of $base_url")
+        return "" // discard urls from different host
+    }
+
+    return uri.normalize().toString()
 }
 
 class TextNodesCollector : NodeVisitor {

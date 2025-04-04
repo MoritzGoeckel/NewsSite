@@ -1,6 +1,6 @@
 package programs
 
-import Configuration
+import util.Configuration
 import summarizer.GPT
 
 fun main() {

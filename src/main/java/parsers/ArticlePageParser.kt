@@ -5,6 +5,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
+import structures.Article
 import structures.ArticleDetails
 import java.sql.Timestamp
 import java.time.Instant
@@ -16,6 +17,12 @@ class ArticlePageParser {
     private val dateMetaNames = setOf("date", "buildDate", "sis-article-published-date", "last-modified")
     private val urlMetaNames = setOf("url", "og:url")
     private val titleMetaNames = setOf("title", "og:title", "ob_headline", "sis-article-headline")
+
+    fun fill(article: Article): Article{
+        val url = article.preview_url
+        val doc = Jsoup.connect(url).get()
+        return Article(article, getTitle(doc), getDescription(doc), getContent(doc), getUrl(doc), getImage(doc), getPublishedAt(doc))
+    }
 
     fun extract(url: String): ArticleDetails {
         val doc = Jsoup.connect(url).get()
@@ -45,6 +52,10 @@ class ArticlePageParser {
             .map { it.second }
             .maxByOrNull { it.length }
             .orEmpty()
+    }
+
+    private fun getPublishedAt(document: Document): Timestamp{
+        return Timestamp.from(Instant.EPOCH) // TODO
     }
 
     private fun getDescription(document: Document): String {

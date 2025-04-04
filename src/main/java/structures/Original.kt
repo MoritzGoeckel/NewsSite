@@ -3,7 +3,7 @@ package structures
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser.parseString
-import printInfo
+import util.printInfo
 import java.sql.Connection
 
 data class Original(val head: String, val content: String, val images: List<String>, val url: String, val rawIn: String, val rawOut: String) {

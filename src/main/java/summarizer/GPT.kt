@@ -1,6 +1,5 @@
 package summarizer
 
-import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -10,7 +9,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import printInfo
+import util.printInfo
 import structures.Original
 import java.security.InvalidParameterException
 import java.time.Instant

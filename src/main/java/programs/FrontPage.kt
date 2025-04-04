@@ -1,18 +1,8 @@
 package programs
 
-import Configuration
-import ingress.ContainsCache
-import processors.TextProcessor
-import structures.Article
-import structures.Language
-import java.io.File
-import printError
-import printInfo
-import java.sql.DriverManager
-
 /*
 fun main() {
-    val config = Configuration()
+    val config = util.Configuration()
     val textProcessor = TextProcessor(Language.DE)
     val urls = File("data/pages/de.txt").readLines()
     val downloader = ArticleDownloader(textProcessor, urls)

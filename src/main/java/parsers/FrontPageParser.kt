@@ -2,11 +2,8 @@ package parsers
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.*
-import processors.TextProcessor
 import structures.Article
-import structures.Language
-import printWarning
-import java.io.File
+import util.printWarning
 
 class FrontPageParser() {
     fun getLinkHeadlines(document: Document, base_url: String): List<Article>{

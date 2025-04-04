@@ -1,16 +1,8 @@
 package programs
 
-import Configuration
-import grouping.Clusterer
-import printInfo
-import processors.TextProcessor
-import structures.Article
-import structures.Language
-import structures.Words
-import java.sql.DriverManager
 /*
 fun main() {
-    val config = Configuration()
+    val config = util.Configuration()
     val processor = TextProcessor(Language.DE)
     val connection = DriverManager.getConnection(config.postgresUrl(), config.postgresUser(), config.postgresPassword())
     assert(connection.isValid(0))
