@@ -51,11 +51,6 @@ fun main() {
         downloadLinks(urlsQueue, frontPageParser, articleQueue)
     }
 
-    // TODO: Download details
-    //val writeToDBQueue: Queue<Article> = ConcurrentLinkedQueue()
-    // val articleParser = ArticlePageParser()
-    //downloadDetails(articleParser, articleQueue, writeToDBQueue)
-
     writeToDb(connection, articleQueue)
 
     val clusterer = Clusterer<Article>()
@@ -151,8 +146,8 @@ fun main() {
 }
 
 private fun sortedClusters(clusterer: Clusterer<Article>): List<Cluster<Article>> {
-    return clusterer.clusters().filter { it.docs.size > 2 }
-        .filter { cluster -> cluster.docs.distinctBy { it.source }.size >= 2 }
+    return clusterer.clusters().filter { it.docs.size > 6 }
+        .filter { cluster -> cluster.docs.distinctBy { it.source }.size >= 4 }
         .sortedBy { cluster -> cluster.docs.distinctBy { it.source }.size }
         .reversed() // We want the top articles first
 }

@@ -54,8 +54,8 @@ class ArticlePageParser {
             .orEmpty()
     }
 
-    private fun getPublishedAt(document: Document): Timestamp{
-        return Timestamp.from(Instant.EPOCH) // TODO
+    private fun getPublishedAt(document: Document): Instant{
+        return Instant.EPOCH // TODO
     }
 
     private fun getDescription(document: Document): String {

@@ -13,13 +13,14 @@ class Article(val preview_head: String,
               val preview_content: String,
               val preview_url: String,
               val source: String,
+              val created_at: Instant,
               val head: String = "",
               val description: String = "",
               val content: String = "",
               var url: String = "",
               val image: String = "",
               val image_metadata: String = "",
-              val published_at: Timestamp = Timestamp.from(Instant.EPOCH)) : WithWords
+              val published_at: Instant = Instant.EPOCH) : WithWords
 {
     companion object {
         private var preparedStatementInsert: PreparedStatement? = null
@@ -33,14 +34,14 @@ class Article(val preview_head: String,
         sqlResult.getString("preview_content"),
         sqlResult.getString("preview_url"),
         sqlResult.getString("source"),
+        sqlResult.getTimestamp("created_at").toInstant(),
         sqlResult.getString("head"),
         sqlResult.getString("description"),
         sqlResult.getString("content"),
         sqlResult.getString("url"),
         sqlResult.getString("image"),
         sqlResult.getString("image_metadata"),
-        sqlResult.getTimestamp("published_at")){
-        created_at = sqlResult.getTimestamp("created_at").toInstant()
+        sqlResult.getTimestamp("published_at").toInstant()){
         summary_id = sqlResult.getInt("summary_id")
         id = sqlResult.getInt("id")
     }
@@ -51,11 +52,12 @@ class Article(val preview_head: String,
                 content: String,
                 url: String,
                 image: String,
-                published_at: Timestamp) : this(
+                published_at: Instant) : this(
         article.preview_head,
         article.preview_content,
         article.preview_url,
         article.source,
+        article.created_at,
         head,
         description,
         content,
@@ -63,14 +65,12 @@ class Article(val preview_head: String,
         image,
         article.image_metadata,
         published_at){
-        created_at = article.created_at
         summary_id = article.summary_id
         id = article.id
     }
 
     var id: Int = -1
     var summary_id: Int = -1
-    var created_at: Instant = Instant.EPOCH
 
     override fun getWords(): Words {
         if(words == null){
@@ -79,7 +79,7 @@ class Article(val preview_head: String,
                 .append(" ").append(preview_content)
                 .append(" ").append(head)
                 .append(" ").append(description)
-                .append(" ").append(content)
+                //.append(" ").append(content) // TODO this dilutes the clusters, maybe it works with different settings
                 .toString()
             words = TextProcessor(Language.DE).makeWordsKeepText(text)
         }
@@ -119,20 +119,20 @@ class Article(val preview_head: String,
             if (i % factor == 0) sb.append(normalized[i])
         }
         val result = sb.toString()
-        // printInfo("normalize", "From: $normalized (${normalized.length})\nTo:   $result (${result.length})")
+        // println("From: $normalized (${normalized.length})\nTo:   $result (${result.length})")
         return result
     }
 
-    fun insertInto(connection: Connection): Boolean {
+    fun insertInto(connection: Connection) {
         if (preparedStatementInsert == null){
             preparedStatementInsert = connection.prepareStatement(
                 "INSERT INTO articles (" +
                             "hash, preview_head, preview_content, preview_url, source, " +
                             "head, description, content, url, " +
                             "image, image_metadata, " +
-                            "published_at" +
+                            "published_at, created_at" +
                         ") " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;"
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;"
             )
         }
 
@@ -148,8 +148,9 @@ class Article(val preview_head: String,
         stmt.setString(9, url)
         stmt.setString(10, image)
         stmt.setString(11, image_metadata)
-        stmt.setTimestamp(12, published_at)
-        return stmt.execute()
+        stmt.setTimestamp(12, Timestamp.from(published_at))
+        stmt.setTimestamp(13, Timestamp.from(created_at))
+        stmt.execute() // TODO check for insert
     }
 
     fun updateInto(connection: Connection): Boolean {
@@ -169,7 +170,7 @@ class Article(val preview_head: String,
         }
 
         val stmt = preparedStatementUpdate!!
-        stmt.setString(1, normalized())
+        stmt.setString(1, normalized()) // Maybe we should not update the hash
         stmt.setString(2, preview_head)
         stmt.setString(3, preview_content)
         stmt.setString(4, preview_url)
@@ -180,9 +181,10 @@ class Article(val preview_head: String,
         stmt.setString(9, url)
         stmt.setString(10, image)
         stmt.setString(11, image_metadata)
-        stmt.setTimestamp(12, published_at)
+        stmt.setTimestamp(12, Timestamp.from(published_at))
         stmt.setInt(13, summary_id)
         stmt.setInt(14, id)
+        // We don't update the created_at
         return stmt.execute()
     }
 

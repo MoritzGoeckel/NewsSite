@@ -40,8 +40,8 @@ CREATE TABLE articles (
     head VARCHAR(501) DEFAULT '',
     description VARCHAR DEFAULT '',
     content VARCHAR DEFAULT '',
-	url VARCHAR (456) UNIQUE DEFAULT '',
-    image VARCHAR(402) DEFAULT '',
+	url VARCHAR (456) DEFAULT '',
+    image VARCHAR(802) DEFAULT '',
 	image_metadata VARCHAR (502) DEFAULT '',
 	published_at TIMESTAMP
 );
