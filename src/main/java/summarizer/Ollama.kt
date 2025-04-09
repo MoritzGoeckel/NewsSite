@@ -32,8 +32,8 @@ fun main(){
 
 private const val MODEL = "gemma3:1b"
 
-class Ollama {
-    public fun summarize(article: Article): Original {
+class Ollama : SummarizerImpl() {
+    public override fun summarize(article: Article): Original {
         val text = makeText(article)
         return Original(
             makeHeadline(text),
@@ -44,19 +44,20 @@ class Ollama {
             makeText(article))
     }
 
-    public fun summarize(articles: List<Article>): Original {
+    public override fun summarize(articles: List<Article>): Original {
         val text = makeText(articles)
         return Original(
             makeHeadline(text),
             makeTeaser(text),
             makeBulletPoints(text) + "\n\n" + makeSummary(text),
-            articles.map { it.image },
+            articles.map { it.image }.filter { it.strip().isNotEmpty() },
             "",
             text)
     }
 
     private fun cleanOutput(text: String): String{
         return text
+            .replace("**", "")
             .strip()
             .removeSurrounding("„","“")
             .removeSurrounding("'", "'")
@@ -76,17 +77,17 @@ class Ollama {
         return removeLinesWith(cleanOutput(json.asJsonObject.get("response").asString), "Zusammenfassung")
     }
 
-    public fun makeText(article: Article): String{
+    fun makeText(article: Article): String{
         val lines = mutableListOf<String>()
         lines.add(cleanStr(article.preview_head))
         lines.add(cleanStr(article.head))
         lines.add(cleanStr(article.preview_content))
         lines.add(cleanStr(article.description))
         lines.add(cleanStr(article.content))
-        return cleanLines(lines).joinToString("\n")
+        return linesToString(lines)
     }
 
-    public fun makeText(articles: List<Article>): String{
+    fun makeText(articles: List<Article>): String{
         val lines = mutableListOf<String>()
         articles.forEach { article ->
             lines.add(cleanStr(article.preview_head))
@@ -95,13 +96,39 @@ class Ollama {
             lines.add(cleanStr(article.description))
             lines.add(cleanStr(article.content))
         }
-        return cleanLines(lines).joinToString("\n")
+        return linesToString(lines)
     }
 
-    private fun cleanLines(lines: List<String>): List<String> {
+    private fun splitCustom(line: String): List<String>{
+        val termiators = setOf('\n', '.', '?', '!')
+        val result = mutableListOf<String>()
+
+        val str = StringBuilder()
+        line.strip().forEach {
+            if(it == '\n') str.append(".")
+            else str.append(it)
+
+            if(termiators.contains(it)){
+                result.add(String(str))
+                str.clear()
+            }
+        }
+        if (str.isNotEmpty()){
+            // unterminated string
+            str.append(".")
+            result.add(String(str))
+        }
+
+        val nothing = setOf('?', ' ', '!', '?', '\n', '\t')
+        return result
+            .map { it.strip() }
+            .filter { it.any { char -> !nothing.contains(char) } }
+    }
+
+    private fun linesToString(lines: List<String>): String {
         val expanded = mutableListOf<String>()
         lines.map { it.strip() }
-            .map { it.split('\n', '.', '?', '!') }
+            .map { splitCustom(it) }
             .forEach { its -> its.forEach{ expanded.add(it.strip())} }
 
         val unique = mutableSetOf<String>()
@@ -112,7 +139,7 @@ class Ollama {
                 result.add(line)
             }
         }
-        return result
+        return result.filter { it.strip().isNotEmpty() }.joinToString(" ")
     }
 
     private fun removeLinesWith(text: String, keyword: String): String = text.split("\n")
@@ -120,7 +147,7 @@ class Ollama {
         .filter { it.strip().isNotEmpty() }
         .joinToString("\n")
 
-    public fun makeTeaser(inputText: String): String{
+    fun makeTeaser(inputText: String): String{
         val lines = mutableListOf<String>()
         lines.add("Schreibe einen Teaser für den folgenden Artikel:")
         lines.add(inputText)
@@ -133,7 +160,7 @@ class Ollama {
         return removeLinesWith(cleanOutput(text.replace("**", "")), "teaser")
     }
 
-    public fun makeBulletPoints(inputText: String): String {
+    fun makeBulletPoints(inputText: String): String {
         val lines = mutableListOf<String>()
         lines.add("Fasse den folgenden Artikel als eine Liste von Fakten zusammen:")
         lines.add(inputText)
@@ -161,7 +188,7 @@ class Ollama {
         return text
     }
 
-    public fun makeHeadline(inputText: String): String {
+    fun makeHeadline(inputText: String): String {
         val lines = mutableListOf<String>()
         lines.add("Denke dir eine neue Überschrift für den Oben stehenden Artikel aus:")
         lines.add(inputText)
@@ -174,7 +201,7 @@ class Ollama {
         return removeLinesWith(cleanOutput(json.asJsonObject.get("response").asString), "Überschrift")
     }
 
-    public fun query(input: String): String{
+    fun query(input: String): String{
         val client = OkHttpClient()
 
         val data = JsonObject()

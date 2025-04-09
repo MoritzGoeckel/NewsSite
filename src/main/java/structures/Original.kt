@@ -5,6 +5,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser.parseString
 import util.printInfo
 import java.sql.Connection
+import java.sql.ResultSet
 
 data class Original(val head: String,
                     val teaser: String,
@@ -13,15 +14,27 @@ data class Original(val head: String,
                     val url: String,
                     val rawIn: String) {
 
+    var id: Int = -1
+
+    constructor(sqlResult: ResultSet) : this(
+        sqlResult.getString("head"),
+        sqlResult.getString("teaser"),
+        sqlResult.getString("content"),
+        parseImages(sqlResult.getString("media")),
+        sqlResult.getString("url"),
+        sqlResult.getString("raw_in")){
+        id = sqlResult.getInt("id")
+    }
+
     private var sources = mutableListOf<ArticleLink>()
 
-    fun insertInto(connection: Connection): Boolean {
-        val preparedStatement = connection.prepareStatement("INSERT INTO originals (url, head, content, media, raw_in, teaser) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;")
-
-        printInfo("Original", "Inserted original: $url")
+    fun insertInto(connection: Connection): Int {
+        val preparedStatement = connection.prepareStatement(
+            "INSERT INTO originals (url, head, content, media, raw_in, teaser) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING RETURNING id;"
+        )
 
         val mediaJson = JsonArray()
-        images.forEach{ mediaJson.add(it) }
+        images.forEach { mediaJson.add(it) }
 
         preparedStatement.setString(1, url)
         preparedStatement.setString(2, head)
@@ -29,7 +42,13 @@ data class Original(val head: String,
         preparedStatement.setString(4, mediaJson.toString())
         preparedStatement.setString(5, rawIn)
         preparedStatement.setString(6, teaser)
-        return preparedStatement.execute()
+
+        val resultSet = preparedStatement.executeQuery()
+        return if (resultSet.next()) {
+            resultSet.getInt("id")
+        } else {
+            throw Exception("Failed to insert original or retrieve ID.")
+        }
     }
 
     fun getSources(): List<ArticleLink> {
@@ -41,8 +60,8 @@ data class Original(val head: String,
             return sources
         }
 
-        val preparedStatement = connection.prepareStatement("SELECT head, url, source FROM articles WHERE original_url = ?;")
-        preparedStatement.setString(1, url)
+        val preparedStatement = connection.prepareStatement("SELECT head, url, source FROM articles WHERE original_id = ?;")
+        preparedStatement.setInt(1, id)
 
         val queryResult = preparedStatement.executeQuery()
         while(queryResult.next()) {
@@ -76,11 +95,12 @@ data class Original(val head: String,
         // TODO remove from cache some time
 
         private fun parseImages(text: String): List<String>{
+            if (text.isEmpty()) return emptyList()
             return parseString(text).asJsonArray.map { it.asString }
         }
 
         fun selectByUrl(url: String, connection: Connection): Original{
-            val preparedStatement = connection.prepareStatement("SELECT * FROM originals where url = ?")
+            val preparedStatement = connection.prepareStatement("SELECT * FROM original where url = ?")
             preparedStatement.setString(1, url)
 
             val queryResult = preparedStatement.executeQuery()

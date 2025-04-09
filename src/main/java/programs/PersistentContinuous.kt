@@ -65,17 +65,13 @@ fun main() {
         downloadDetails(connection, articleParser, segment, numSegments)
     }
 
-    waitForever()
+    val summarizer = summarizer.Summarizer(summarizer.Ollama(), connection)
+    insertOriginals(summarizer, clusterer)
 
-    // use to create summary / originals
+    waitForever()
 
     // populate media / image size
 
-
-    // val summarizer = summarizer.Summarizer(Language.DE, 300)
-
-    // val select = connection.prepareStatement("SELECT * FROM articles ORDER BY created_at ASC") // TODO limit
-    // val result = select.executeQuery()
 
     // val clusterer = Clusterer<Article>()
     // val insertedDocs = mutableListOf<Article>()
@@ -145,11 +141,19 @@ fun main() {
     }*/
 }
 
+fun insertOriginals(summarizer: summarizer.Summarizer, clusterer: Clusterer<Article>): Worker {
+    return Worker {
+        while (true) {
+            summarizer.makeAndInsertOriginals(sortedClusters(clusterer))
+            Thread.sleep(Duration.ofSeconds(10))
+        }
+    }.start()
+}
+
 private fun sortedClusters(clusterer: Clusterer<Article>): List<Cluster<Article>> {
     return clusterer.clusters().filter { it.docs.size > 6 }
         .filter { cluster -> cluster.docs.distinctBy { it.source }.size >= 4 }
-        .sortedBy { cluster -> cluster.docs.distinctBy { it.source }.size }
-        .reversed() // We want the top articles first
+        .sortedByDescending { cluster -> cluster.docs.distinctBy { it.source }.size }
 }
 
 fun waitForever() {

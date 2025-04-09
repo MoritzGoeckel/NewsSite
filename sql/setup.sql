@@ -1,5 +1,5 @@
 DROP TABLE articles;
-DROP TABLE summary;
+DROP TABLE originals;
 DROP INDEX idx_articles_hash;
 
 CREATE DATABASE news_site
@@ -9,7 +9,7 @@ CREATE DATABASE news_site
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
 
-CREATE TABLE summary (
+CREATE TABLE originals (
     id integer primary key generated always as identity,
     url VARCHAR (600) NOT NULL DEFAULT '',
     head VARCHAR (500) NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE summary (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO summary (head, content, raw_in, raw_out) VALUES ('', '', '', '');
+INSERT INTO originals (head, teaser, content, raw_in) VALUES ('', '', '', '');
 
 CREATE TABLE articles (
 	id integer primary key generated always as identity,
@@ -31,11 +31,11 @@ CREATE TABLE articles (
 	preview_content VARCHAR DEFAULT '',
 	preview_url VARCHAR (458) UNIQUE NOT NULL,
 	source VARCHAR (70) NOT NULL,
-	-- summary
-	summary_id integer DEFAULT 1,
-    CONSTRAINT fk_summary
-          FOREIGN KEY(summary_id)
-          REFERENCES summary(id),
+	-- originals
+	original_id integer DEFAULT 1,
+    CONSTRAINT fk_original
+          FOREIGN KEY(original_id)
+          REFERENCES originals(id),
     -- details
     head VARCHAR(501) DEFAULT '',
     description VARCHAR DEFAULT '',

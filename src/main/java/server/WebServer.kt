@@ -24,7 +24,6 @@ class WebServer(val connection: Connection) {
 
     // TODO maybe make private and get from db, just receive signal of change
     var clusters = listOf<Cluster<Article>>()
-    // private var articles = listOf<Article>()
 
     fun start(): WebServer {
         val app = Javalin.create()
@@ -41,7 +40,7 @@ class WebServer(val connection: Connection) {
     }
 
     private fun selectArticles(): List<Article> {
-        val selectStmt = connection.prepareStatement("SELECT * FROM articles WHERE created_at > ? AND created_at <= ? ORDER BY created_at ASC")
+        val selectStmt = connection.prepareStatement("SELECT * FROM articles WHERE created_at > ? AND created_at <= ? ORDER BY created_at DESC")
         selectStmt.setTimestamp(1, Timestamp.from(Instant.now().minus(Duration.ofHours(24))))
         selectStmt.setTimestamp(2, Timestamp.from(Instant.now()))
 
@@ -50,7 +49,20 @@ class WebServer(val connection: Connection) {
         while (result.next()){
             localArticles.add(Article(result))
         }
-        return localArticles.reversed() // We want the newest on top
+        return localArticles
+    }
+
+    private fun selectOriginals(): List<Original> {
+        val selectStmt = connection.prepareStatement("SELECT * FROM originals WHERE created_at > ? AND created_at <= ? ORDER BY created_at DESC")
+        selectStmt.setTimestamp(1, Timestamp.from(Instant.now().minus(Duration.ofHours(24))))
+        selectStmt.setTimestamp(2, Timestamp.from(Instant.now()))
+
+        val result = selectStmt.executeQuery()
+        val localOriginals = mutableListOf<Original>()
+        while (result.next()){
+            localOriginals.add(Original(result))
+        }
+        return localOriginals
     }
 
     private fun addFrontPage(app: Javalin){
@@ -82,6 +94,12 @@ class WebServer(val connection: Connection) {
         app.get("/articles.json") { it ->
             val root = JsonArray()
             selectArticles().forEach { article -> root.add(article.toJson()) }
+            it.contentType(ContentType.JSON).result(root.toString())
+        }
+
+        app.get("/originals.json") {
+            val root = JsonArray()
+            selectOriginals().forEach { original -> root.add(original.toJson()) }
             it.contentType(ContentType.JSON).result(root.toString())
         }
 

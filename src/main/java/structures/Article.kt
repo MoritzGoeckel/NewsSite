@@ -64,7 +64,7 @@ class Article(val preview_head: String,
         sqlResult.getString("image"),
         sqlResult.getString("image_metadata"),
         sqlResult.getTimestamp("published_at").toInstant()){
-        summary_id = sqlResult.getInt("summary_id")
+        original_id = sqlResult.getInt("original_id")
         id = sqlResult.getInt("id")
     }
 
@@ -87,12 +87,12 @@ class Article(val preview_head: String,
         image,
         article.image_metadata,
         published_at){
-        summary_id = article.summary_id
+        original_id = article.original_id
         id = article.id
     }
 
     var id: Int = -1
-    var summary_id: Int = -1
+    var original_id: Int = -1
 
     override fun getWords(): Words {
         if(words == null){
@@ -182,7 +182,7 @@ class Article(val preview_head: String,
                         "hash = ?, preview_head = ?, preview_content = ?, preview_url = ?, source = ?, " +
                         "head = ?, description = ?, content = ?, url = ?, " +
                         "image = ?, image_metadata = ?, " +
-                        "published_at = ?, summary_id = ? " +
+                        "published_at = ?, original_id = ? " +
                         "WHERE id = ?;"
             )
         }
@@ -204,7 +204,7 @@ class Article(val preview_head: String,
         stmt.setString(10, image)
         stmt.setString(11, image_metadata)
         stmt.setTimestamp(12, Timestamp.from(published_at))
-        stmt.setInt(13, summary_id)
+        stmt.setInt(13, original_id)
         stmt.setInt(14, id)
         // We don't update the created_at
         return stmt.execute()

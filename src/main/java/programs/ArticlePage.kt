@@ -15,7 +15,7 @@ fun main() {
         "https://www.stern.de/sport/em-in-england--englaenderinnen-nach-4-0-spektakel-gegen-schweden-im-finale-32576204.html",
         "https://www.stern.de/digital/online/amazon-prime-erhoeht-preise---so-behalten-sie-das-alte-abo-32573572.html")
 
-    val summarizer = Summarizer(Language.DE, 300)
+    // val summarizer = Summarizer(Language.DE, 300)
     urls.map {
         try {
             val details = articlePageParser.extract(it)
@@ -25,9 +25,9 @@ fun main() {
             } else {
                 println("################# START $it #################")
                 println(details.content)
-                println("################# SUMMARY $it #################")
-                val summary = summarizer.summarize(details.content, details.content)
-                println(summary)
+                // println("################# SUMMARY $it #################")
+                // val summary = summarizer.summarize(details.content, details.content)
+                // println(summary)
                 println("################# END $it #################")
             }
         } catch (e: Exception){

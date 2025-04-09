@@ -1,3 +1,3 @@
 DROP TABLE articles;
-DROP TABLE summary;
+DROP TABLE originals;
 DROP INDEX idx_articles_hash;
