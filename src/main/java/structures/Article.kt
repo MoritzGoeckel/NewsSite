@@ -1,6 +1,7 @@
 package structures
 
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import processors.TextProcessor
 import processors.getBaseUrl
 import java.sql.Connection
@@ -23,6 +24,27 @@ class Article(val preview_head: String,
               val published_at: Instant = Instant.EPOCH) : WithWords
 {
     companion object {
+        fun fromJson(s: String): Article {
+            val elem = JsonParser.parseString(s)
+            val obj = elem.asJsonObject
+            fun getStr(attr: String): String{
+               return if(obj.has(attr)) obj[attr].asString else ""
+            }
+            return Article(
+                getStr("preview_head"),
+                getStr("preview_content"),
+                getStr("preview_url"),
+                getStr("source"),
+                Instant.parse(getStr("created_at")),
+                getStr("head"),
+                getStr("description"),
+                getStr("content"),
+                getStr("url"),
+                getStr("image"),
+                getStr("image_metadata"),
+                Instant.parse(getStr("published_at")))
+        }
+
         private var preparedStatementInsert: PreparedStatement? = null
         private var preparedStatementUpdate: PreparedStatement? = null
     }

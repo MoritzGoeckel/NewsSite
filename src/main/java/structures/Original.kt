@@ -6,12 +6,17 @@ import com.google.gson.JsonParser.parseString
 import util.printInfo
 import java.sql.Connection
 
-data class Original(val head: String, val content: String, val images: List<String>, val url: String, val rawIn: String, val rawOut: String) {
+data class Original(val head: String,
+                    val teaser: String,
+                    val content: String,
+                    val images: List<String>,
+                    val url: String,
+                    val rawIn: String) {
 
     private var sources = mutableListOf<ArticleLink>()
 
     fun insertInto(connection: Connection): Boolean {
-        val preparedStatement = connection.prepareStatement("INSERT INTO originals (url, head, content, media, raw_in, raw_out) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;")
+        val preparedStatement = connection.prepareStatement("INSERT INTO originals (url, head, content, media, raw_in, teaser) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;")
 
         printInfo("Original", "Inserted original: $url")
 
@@ -23,7 +28,7 @@ data class Original(val head: String, val content: String, val images: List<Stri
         preparedStatement.setString(3, content)
         preparedStatement.setString(4, mediaJson.toString())
         preparedStatement.setString(5, rawIn)
-        preparedStatement.setString(6, rawOut)
+        preparedStatement.setString(6, teaser)
         return preparedStatement.execute()
     }
 
@@ -56,14 +61,13 @@ data class Original(val head: String, val content: String, val images: List<Stri
         val result = JsonObject()
         result.addProperty("url", url)
         result.addProperty("head", head)
+        result.addProperty("teaser", teaser)
         result.addProperty("content", content)
 
         val media = JsonArray()
         images.forEach { media.add(it) }
         result.add("media", media)
 
-        // result.addProperty("raw_in", raw_in)
-        // result.addProperty("raw_out", raw_out)
         return result
     }
 
@@ -87,7 +91,7 @@ data class Original(val head: String, val content: String, val images: List<Stri
                     images = parseImages(queryResult.getString("media")),
                     url = queryResult.getString("url"),
                     rawIn = queryResult.getString("raw_in"),
-                    rawOut = queryResult.getString("raw_out"))
+                    teaser = queryResult.getString("teaser"))
                 result.getSources(connection)
                 return result
             } else {
