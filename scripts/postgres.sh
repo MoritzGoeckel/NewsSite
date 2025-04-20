@@ -11,7 +11,7 @@ sudo -i -u sammy
 psql
 
 # Port is 5432
-psql -U posgres -W postgres
+psql -U postgres -W postgres
 
 # Rename column
 ALTER TABLE articles RENAME COLUMN created TO created_at;

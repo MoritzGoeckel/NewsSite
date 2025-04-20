@@ -7,9 +7,13 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import structures.Article
 import structures.Original
+import java.util.concurrent.TimeUnit
+import okhttp3.OkHttpClient
+
+
 
 fun main(){
-    val api = Ollama()
+    val api = Ollama("mistral-nemo")
     val article = Article.fromJson("""{
         "preview_head": "Vorwurf Menschenhandel: Razzien in mehreren Bundesländern",
         "preview_content": "Vorwurf Menschenhandel: Razzien in mehreren Bundesländern",
@@ -30,9 +34,9 @@ fun main(){
     println(result)
 }
 
-private const val MODEL = "gemma3:1b"
+private const val REQUEST_TIMEOUT_SECONDS: Long = 60
 
-class Ollama : SummarizerImpl() {
+class Ollama(private val model: String) : SummarizerImpl() {
     public override fun summarize(article: Article): Original {
         val text = makeText(article)
         return Original(
@@ -202,10 +206,14 @@ class Ollama : SummarizerImpl() {
     }
 
     fun query(input: String): String{
-        val client = OkHttpClient()
+        val client = OkHttpClient.Builder()
+            .connectTimeout(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
 
         val data = JsonObject()
-        data.addProperty("model", "gemma3:1b")
+        data.addProperty("model", model)
         data.addProperty("prompt", input)
         data.addProperty("stream", false)
 

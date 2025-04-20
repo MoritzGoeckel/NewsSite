@@ -65,7 +65,9 @@ fun main() {
         downloadDetails(connection, articleParser, segment, numSegments)
     }
 
-    val summarizer = summarizer.Summarizer(summarizer.Ollama(), connection)
+    // Model: "gemma3:1b"
+    // Model: "mistral-nemo"
+    val summarizer = summarizer.Summarizer(summarizer.Ollama("mistral-nemo"), connection)
     insertOriginals(summarizer, clusterer)
 
     waitForever()

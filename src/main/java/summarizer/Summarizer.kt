@@ -15,7 +15,7 @@ abstract class SummarizerImpl {
 class Summarizer(val impl: SummarizerImpl, val connection: Connection,) {
     private val done = mutableSetOf<Int>() // Article IDs
     fun makeAndInsertOriginals(clusters: List<Cluster<Article>>){
-        val clustersToSummarize = clusters
+        val goodClusters = clusters
             // More than MINIMUM_SOURCES docs
             .filter { cluster -> cluster.docs.size >= MINIMUM_SOURCES }
             // Not already summarized (cache)
@@ -26,15 +26,42 @@ class Summarizer(val impl: SummarizerImpl, val connection: Connection,) {
             .filter { cluster ->
                 cluster.docs.distinctBy { it.source }.size >= MINIMUM_SOURCES
             }
-            // Not already summarized (db)
-            .filter { cluster ->
-                val articleIds = cluster.docs.map { it.id }
-                notSummarized(articleIds)
-            }
             // Many sources should be on top
             .sortedByDescending { cluster -> cluster.docs.distinctBy { it.source }.size }
 
-        clustersToSummarize.forEach {  cluster ->
+        val clustersToSummarize = mutableListOf<Cluster<Article>>()
+        val alreadySummarized = mutableListOf<Cluster<Article>>()
+        goodClusters.forEach { cluster ->
+            val articleIds = cluster.docs.map { it.id }
+            if (notSummarized(articleIds)){
+                clustersToSummarize.add(cluster)
+            } else {
+                alreadySummarized.add(cluster)
+            }
+        }
+
+        insertNewOriginals(clustersToSummarize)
+        // updateOriginals(alreadySummarized) // TODO
+    }
+
+    private fun insertNewOriginals(clusters: List<Cluster<Article>>){
+        clusters.forEach {  cluster ->
+            val articleIds = cluster.docs.map { it.id }
+            val articles = lookupArticles(articleIds)
+            val original = impl.summarize(articles)
+            done.addAll(articleIds)
+            val id = original.insertInto(connection)
+            updateSummaryId(articleIds, id)
+        }
+    }
+
+    private fun updateOriginals(clusters: List<Cluster<Article>>){
+        clusters
+        .filter { cluster ->
+            TODO("Check if score better")
+        }
+        .forEach { cluster ->
+            TODO("Update original")
             val articleIds = cluster.docs.map { it.id }
             val articles = lookupArticles(articleIds)
             val original = impl.summarize(articles)
