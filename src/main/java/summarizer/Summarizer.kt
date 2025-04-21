@@ -3,6 +3,7 @@ package summarizer
 import grouping.Cluster
 import structures.Article
 import structures.Original
+import util.printError
 import java.sql.Connection
 
 const val MINIMUM_SOURCES = 5
@@ -16,12 +17,6 @@ class Summarizer(val impl: SummarizerImpl, val connection: Connection,) {
     private val done = mutableSetOf<Int>() // Article IDs
     fun makeAndInsertOriginals(clusters: List<Cluster<Article>>){
         val goodClusters = clusters
-            // More than MINIMUM_SOURCES docs
-            .filter { cluster -> cluster.docs.size >= MINIMUM_SOURCES }
-            // Not already summarized (cache)
-            .filter { cluster ->
-                cluster.docs.count { doc -> !done.contains(doc.id) } >= MINIMUM_SOURCES
-            }
             // More than MINIMUM_SOURCES sources
             .filter { cluster ->
                 cluster.docs.distinctBy { it.source }.size >= MINIMUM_SOURCES
@@ -41,7 +36,7 @@ class Summarizer(val impl: SummarizerImpl, val connection: Connection,) {
         }
 
         insertNewOriginals(clustersToSummarize)
-        // updateOriginals(alreadySummarized) // TODO
+        updateOriginals(alreadySummarized)
     }
 
     private fun insertNewOriginals(clusters: List<Cluster<Article>>){
@@ -52,22 +47,49 @@ class Summarizer(val impl: SummarizerImpl, val connection: Connection,) {
             done.addAll(articleIds)
             val id = original.insertInto(connection)
             updateSummaryId(articleIds, id)
+            printError("Summarizer", "Inserted original id=$id")
         }
     }
 
     private fun updateOriginals(clusters: List<Cluster<Article>>){
         clusters
         .filter { cluster ->
-            TODO("Check if score better")
+            val newSize = cluster.docs.distinctBy { it.source }.size
+            val oldSize = lookupNumberOfArticles(cluster) // TODO: Cache this
+            if(newSize > (oldSize + oldSize * 0.1)) // 10% increase
+            {
+                printError("Summarizer", "Updating original from $oldSize to $newSize articles")
+                true
+            } else {
+                false
+            }
         }
         .forEach { cluster ->
-            TODO("Update original")
             val articleIds = cluster.docs.map { it.id }
             val articles = lookupArticles(articleIds)
             val original = impl.summarize(articles)
             done.addAll(articleIds)
-            val id = original.insertInto(connection)
+            val id = lookupOriginalId(articleIds)
+            original.updateInto(connection, id)
             updateSummaryId(articleIds, id)
+            printError("Summarizer", "Updated original id=$id")
+        }
+    }
+
+    private fun lookupNumberOfArticles(cluster: Cluster<Article>): Int {
+        val articleIds = cluster.docs.map { it.id }
+        val originalId = lookupOriginalId(articleIds)
+        return lookupNumberOfArticles(originalId)
+    }
+
+    private fun lookupNumberOfArticles(originalId: Int): Int {
+        val stmt = connection.prepareStatement("SELECT COUNT(DISTINCT source) FROM articles WHERE original_id = ?")
+        stmt.setInt(1, originalId)
+        val result = stmt.executeQuery()
+        if (result.next()) {
+            return result.getInt(1)
+        } else {
+            throw Exception("Failed to lookup number of articles.")
         }
     }
 
@@ -78,7 +100,21 @@ class Summarizer(val impl: SummarizerImpl, val connection: Connection,) {
         stmt.executeUpdate()
     }
 
+    private fun lookupOriginalId(articleIds: List<Int>): Int{
+        val stmt = connection.prepareStatement("SELECT original_id FROM articles WHERE id = ANY(?) LIMIT 1")
+        stmt.setArray(1, connection.createArrayOf("int", articleIds.toTypedArray()))
+        val result = stmt.executeQuery()
+        if (result.next()) {
+            return result.getInt(1)
+        } else {
+            throw Exception("Failed to lookup original ID.")
+        }
+    }
+
     private fun notSummarized(articleIds: List<Int>): Boolean {
+        // Check cache
+        if (articleIds.any { done.contains(it) }) return false
+
         val stmt = connection.prepareStatement("SELECT COUNT(*) FROM articles WHERE id = ANY(?) AND original_id != 1")
         stmt.setArray(1, connection.createArrayOf("int", articleIds.toTypedArray()))
         val result = stmt.executeQuery()

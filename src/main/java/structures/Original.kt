@@ -11,8 +11,7 @@ data class Original(val head: String,
                     val teaser: String,
                     val content: String,
                     val images: List<String>,
-                    val url: String,
-                    val rawIn: String) {
+                    val url: String) {
 
     var id: Int = -1
 
@@ -21,16 +20,19 @@ data class Original(val head: String,
         sqlResult.getString("teaser"),
         sqlResult.getString("content"),
         parseImages(sqlResult.getString("media")),
-        sqlResult.getString("url"),
-        sqlResult.getString("raw_in")){
+        sqlResult.getString("url")){
         id = sqlResult.getInt("id")
     }
 
     private var sources = mutableListOf<ArticleLink>()
 
-    fun insertInto(connection: Connection): Int {
+    fun updateInto(connection: Connection, id: Int) {
+        if(this.id != -1 && this.id != id){
+            throw Exception("Trying to update original with different ID")
+        }
+
         val preparedStatement = connection.prepareStatement(
-            "INSERT INTO originals (url, head, content, media, raw_in, teaser) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING RETURNING id;"
+            "UPDATE originals SET url = ?, head = ?, content = ?, media = ?, teaser = ? WHERE id = ?;"
         )
 
         val mediaJson = JsonArray()
@@ -40,8 +42,30 @@ data class Original(val head: String,
         preparedStatement.setString(2, head)
         preparedStatement.setString(3, content)
         preparedStatement.setString(4, mediaJson.toString())
-        preparedStatement.setString(5, rawIn)
-        preparedStatement.setString(6, teaser)
+        preparedStatement.setString(5, teaser)
+        preparedStatement.setInt(6, id)
+
+        val result = preparedStatement.executeUpdate()
+        if (result == 0) {
+            throw Exception("Failed to update original.")
+        }
+
+        this.id = id
+    }
+
+    fun insertInto(connection: Connection): Int {
+        val preparedStatement = connection.prepareStatement(
+            "INSERT INTO originals (url, head, content, media, teaser) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING RETURNING id;"
+        )
+
+        val mediaJson = JsonArray()
+        images.forEach { mediaJson.add(it) }
+
+        preparedStatement.setString(1, url)
+        preparedStatement.setString(2, head)
+        preparedStatement.setString(3, content)
+        preparedStatement.setString(4, mediaJson.toString())
+        preparedStatement.setString(5, teaser)
 
         val resultSet = preparedStatement.executeQuery()
         return if (resultSet.next()) {
@@ -110,7 +134,6 @@ data class Original(val head: String,
                     content = queryResult.getString("content"),
                     images = parseImages(queryResult.getString("media")),
                     url = queryResult.getString("url"),
-                    rawIn = queryResult.getString("raw_in"),
                     teaser = queryResult.getString("teaser"))
                 result.getSources(connection)
                 return result

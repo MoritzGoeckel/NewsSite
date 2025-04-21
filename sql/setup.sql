@@ -16,11 +16,10 @@ CREATE TABLE originals (
     teaser VARCHAR NOT NULL,
     content VARCHAR NOT NULL,
     media VARCHAR DEFAULT '',
-    raw_in VARCHAR NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO originals (head, teaser, content, raw_in) VALUES ('', '', '', '');
+INSERT INTO originals (head, teaser, content) VALUES ('', '', '');
 
 CREATE TABLE articles (
 	id integer primary key generated always as identity,

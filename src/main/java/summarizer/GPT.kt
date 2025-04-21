@@ -140,7 +140,7 @@ class GPT(private val apiKey: String) {
 
         printInfo("GPT", "Generated original: ${header.trim()}")
 
-        return Original(header.trim(), "", content.trim(), images, headerToUrl(header).trim(), text)
+        return Original(header.trim(), "", content.trim(), images, headerToUrl(header).trim())
     }
 
     private fun headerToUrl(header: String): String {

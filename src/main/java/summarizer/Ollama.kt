@@ -44,8 +44,7 @@ class Ollama(private val model: String) : SummarizerImpl() {
             makeTeaser(text),
             makeBulletPoints(text) + "\n\n" + makeSummary(text),
             listOf(article.image),
-            "",
-            makeText(article))
+            "")
     }
 
     public override fun summarize(articles: List<Article>): Original {
@@ -55,8 +54,7 @@ class Ollama(private val model: String) : SummarizerImpl() {
             makeTeaser(text),
             makeBulletPoints(text) + "\n\n" + makeSummary(text),
             articles.map { it.image }.filter { it.strip().isNotEmpty() },
-            "",
-            text)
+            "")
     }
 
     private fun cleanOutput(text: String): String{
