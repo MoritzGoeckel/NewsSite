@@ -5,9 +5,8 @@ import grouping.Clusterer
 import ingress.ContainsCache
 import parsers.ArticlePageParser
 import parsers.FrontPageParser
-import server.WebServer
+import server.DebugServer
 import structures.Article
-import structures.Language
 import util.*
 import java.io.File
 import java.sql.Connection
@@ -35,7 +34,7 @@ fun main() {
     // TODO
     // connection.prepareStatement("DELETE FROM articles;").execute()
 
-    val server = WebServer(connection)
+    val debugServer = DebugServer(connection, config.debugPort())
         .start()
 
     val articleQueue: Queue<Article> = ConcurrentLinkedQueue()
@@ -54,8 +53,7 @@ fun main() {
     val clusterer = Clusterer<Article>()
 
     updateCluster(connection, clusterer) {
-        // Update server's clusters
-        server.clusters = sortedClusters(clusterer)
+        debugServer.clusters = sortedClusters(clusterer)
     }
 
     val numSegments = 4
@@ -69,7 +67,6 @@ fun main() {
     insertOriginals(summarizer, clusterer)
 
     waitForever()
-
     // TODO populate media / image size
 }
 

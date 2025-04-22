@@ -26,6 +26,14 @@ class Configuration {
         return openAIKey
     }
 
+    fun debugPort(): Int {
+        return 8081
+    }
+
+    fun frontendPort(): Int {
+        return 8080
+    }
+
     init {
         run {
             val variableName = "log_level"
