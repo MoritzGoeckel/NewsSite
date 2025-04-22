@@ -1,8 +1,6 @@
-package programs
+package programs.tests
 
 import parsers.ArticlePageParser
-import structures.Language
-import summarizer.Summarizer
 import util.printError
 
 fun main() {

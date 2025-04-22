@@ -1,8 +1,7 @@
-package programs
+package programs.tests
 
 import graphics.getVisualCenter
 import java.io.File
-import java.lang.Exception
 import javax.imageio.ImageIO
 
 

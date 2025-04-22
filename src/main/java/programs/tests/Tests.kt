@@ -1,4 +1,4 @@
-package programs
+package programs.tests
 
 import parsers.normalizeUrl
 

@@ -1,4 +1,4 @@
-package programs
+package programs.tests
 
 import grouping.Clusterer
 import util.printInfo

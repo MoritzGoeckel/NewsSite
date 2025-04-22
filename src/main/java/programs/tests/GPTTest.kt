@@ -1,4 +1,4 @@
-package programs
+package programs.tests
 
 import util.Configuration
 import summarizer.GPT
