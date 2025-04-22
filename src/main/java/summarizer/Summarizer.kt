@@ -7,6 +7,7 @@ import util.printError
 import java.sql.Connection
 
 const val MINIMUM_SOURCES = 5
+const val NULL_ORIGINAL_ID = 1
 
 abstract class SummarizerImpl {
     abstract fun summarize(article: Article): Original;
@@ -55,7 +56,7 @@ class Summarizer(val impl: SummarizerImpl, val connection: Connection,) {
         clusters
         .filter { cluster ->
             val newSize = cluster.docs.distinctBy { it.source }.size
-            val oldSize = lookupNumberOfArticles(cluster) // TODO: Cache this
+            val oldSize = lookupArticlesReferencedByOriginalIn(cluster) // TODO: Cache this
             if(newSize > (oldSize + oldSize * 0.1)) // 10% increase
             {
                 printError("Summarizer", "Updating original from $oldSize to $newSize articles")
@@ -67,22 +68,43 @@ class Summarizer(val impl: SummarizerImpl, val connection: Connection,) {
         .forEach { cluster ->
             val articleIds = cluster.docs.map { it.id }
             val articles = lookupArticles(articleIds)
-            val original = impl.summarize(articles)
-            done.addAll(articleIds)
-            val id = lookupOriginalId(articleIds)
-            original.updateInto(connection, id)
-            updateSummaryId(articleIds, id)
-            printError("Summarizer", "Updated original id=$id")
+            val originalIds = lookupOriginalIds(articleIds)
+            val originalIdSet = originalIds.toMutableSet()
+            originalIdSet.remove(NULL_ORIGINAL_ID)
+            if (originalIdSet.size > 1) {
+                printError("Summarizer", "Cannot update original, multiple originals in cluster: $originalIds")
+            } else if (originalIdSet.isEmpty()) {
+                throw Exception("Can't update, because no original in cluster $articleIds")
+            } else {
+                val id = originalIdSet.first()
+                val original = impl.summarize(articles)
+                original.updateInto(connection, id)
+                updateSummaryId(articleIds, id)
+                done.addAll(articleIds)
+                printError("Summarizer", "Updated original id=$id")
+            }
         }
     }
 
-    private fun lookupNumberOfArticles(cluster: Cluster<Article>): Int {
+    private fun lookupArticlesReferencedByOriginalIn(cluster: Cluster<Article>): Int {
         val articleIds = cluster.docs.map { it.id }
-        val originalId = lookupOriginalId(articleIds)
-        return lookupNumberOfArticles(originalId)
+        val originalIds = lookupOriginalIds(articleIds)
+        val originalIdSet = originalIds.toMutableSet()
+        originalIdSet.remove(NULL_ORIGINAL_ID)
+
+        if (originalIdSet.size > 1) {
+            printError("Summarizer", "Multiple originals in cluster, can't lookup articles: $originalIds")
+            return 0
+        } else if (originalIdSet.isEmpty()) {
+            printError("Summarizer", "No original in cluster, can't lookup articles: $articleIds")
+            return 0
+        }
+
+        val originalId = originalIdSet.first()
+        return lookupNumberOfArticlesIn(originalId)
     }
 
-    private fun lookupNumberOfArticles(originalId: Int): Int {
+    private fun lookupNumberOfArticlesIn(originalId: Int): Int {
         val stmt = connection.prepareStatement("SELECT COUNT(DISTINCT source) FROM articles WHERE original_id = ?")
         stmt.setInt(1, originalId)
         val result = stmt.executeQuery()
@@ -100,15 +122,15 @@ class Summarizer(val impl: SummarizerImpl, val connection: Connection,) {
         stmt.executeUpdate()
     }
 
-    private fun lookupOriginalId(articleIds: List<Int>): Int{
-        val stmt = connection.prepareStatement("SELECT original_id FROM articles WHERE id = ANY(?) LIMIT 1")
+    private fun lookupOriginalIds(articleIds: List<Int>): List<Int>{
+        val stmt = connection.prepareStatement("SELECT original_id FROM articles WHERE id = ANY(?) AND original_id != $NULL_ORIGINAL_ID")
         stmt.setArray(1, connection.createArrayOf("int", articleIds.toTypedArray()))
         val result = stmt.executeQuery()
-        if (result.next()) {
-            return result.getInt(1)
-        } else {
-            throw Exception("Failed to lookup original ID.")
+        val originalIds = mutableListOf<Int>()
+        while (result.next()) {
+            originalIds.add(result.getInt(1))
         }
+        return originalIds
     }
 
     private fun notSummarized(articleIds: List<Int>): Boolean {
