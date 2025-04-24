@@ -3,9 +3,9 @@ package structures
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser.parseString
-import util.printInfo
 import java.sql.Connection
 import java.sql.ResultSet
+import java.time.Instant
 
 data class Original(val head: String,
                     val teaser: String,
@@ -14,17 +14,18 @@ data class Original(val head: String,
                     val url: String) {
 
     var id: Int = -1
+    var time: Instant = Instant.EPOCH;
+    private var sources = mutableListOf<ArticleLink>()
 
     constructor(sqlResult: ResultSet) : this(
         sqlResult.getString("head"),
         sqlResult.getString("teaser"),
         sqlResult.getString("content"),
         parseImages(sqlResult.getString("media")),
-        sqlResult.getString("url")){
+        sqlResult.getString("url")) {
+        time = sqlResult.getTimestamp("created_at").toInstant()
         id = sqlResult.getInt("id")
     }
-
-    private var sources = mutableListOf<ArticleLink>()
 
     fun updateInto(connection: Connection, id: Int) {
         if(this.id != -1 && this.id != id){

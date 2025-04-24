@@ -6,7 +6,6 @@ import grouping.Cluster
 import io.javalin.Javalin
 import io.javalin.http.ContentType
 import structures.Article
-import structures.Original
 import java.sql.Connection
 
 class DebugServer(val connection: Connection, val port: Int) {
@@ -28,12 +27,8 @@ class DebugServer(val connection: Connection, val port: Int) {
             it.contentType(ContentType.JSON).result(root.toString())
         }
 
-        app.get("article/{id}") {
-            val article = Original.getOriginal(it.pathParam("id"), connection)
-            val page = ArticlePage(articleFromOriginal(article))
-
-            it.result(page.html())
-                .contentType("text/html; charset=utf-8")
+        app.get("article/{id}.json") {
+            TODO()
         }
 
         app.get("/originals.json") {

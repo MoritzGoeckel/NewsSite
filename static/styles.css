@@ -1,10 +1,12 @@
 body {
-    background-color: #fff1e5;
+    background-color: #272727;
     font-family: 'Open Sans', sans-serif;
     font-weight: normal;
+    color: #ffffff;
 }
 
-#articles {
+#title h1 {
+    display: inline;
 }
 
 h1 {
@@ -13,21 +15,8 @@ h1 {
 }
 
 h1, h1 a, h1 a:hover {
-    color: black;
+    color: #ffffff;
     text-decoration: none;
-}
-
-.singleArticle .afterArticle {
-    margin: 2rem 4rem;
-}
-
-.singleArticle .description {
-    margin-top: 2rem;
-}
-
-.singleArticle h2 {
-    font-weight: bold;
-    font-size: 2.5rem;
 }
 
 .description p {
@@ -40,66 +29,8 @@ h1,h2,h3,h4 {
 }
 
 #outer {
-    max-width: 1300px;
+    max-width: 45rem;
     margin-top: 2rem;
-}
-
-
-.row:nth-of-type(n+2) {
-    border-top: solid 1px #e6d9ce;
-}
-
-.afterArticle {
-    height: auto;
-}
-
-.dark {
-    background-color: #F2DFCE;
-}
-
-.light  {
-    background-color: #FFF7EF;
-}
-
-.col-sm-9 .dark .afterArticle {
-    padding: 1rem 1.5rem 1.5rem 1.5rem;
-}
-
-.col-sm-9 .vertical .headlineImage {
-    float: right;
-    width: 60%;
-    height: 100%;
-}
-
-.col-sm-9 .vertical .afterArticle {
-    float: left;
-    width: 40%;
-    height: 100%;
-    text-align: center;
-    padding-top: 3.5rem;
-}
-
-.col-sm-9 .vertical .description {
-    text-align: center;
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.col-sm-3 .light .afterArticle {
-    padding: 1rem;
-}
-
-.article_wrapper:nth-of-type(n+2) {
-    border-top: solid 1px #e6d9ce;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    display: block;
-}
-
-.col-sm-4:nth-of-type(n+2),
-.col-sm-8:nth-of-type(n+2),
-.col-sm-3:nth-of-type(n+2) {
-    border-left: solid 1px #e6d9ce;
 }
 
 #title {
@@ -109,64 +40,25 @@ h1,h2,h3,h4 {
     padding-bottom: 1rem;
     padding-top: 1rem;
     text-align: center;
-    border-bottom: dotted 2px black;
-}
-
-.row {
-    min-height: 5rem;
-    margin-bottom: 1rem;
-    padding-top: 1rem;
-}
-
-.row h2 {
-    font-size: 32px;
-}
-
-.row h3 {
-    font-size: 22px;
-}
-
-.row h4 {
-    font-size: 22px;
-}
-
-.col-sm-8 .headlineImage,
-.col-sm-9 .headlineImage {
-    height: 60%;
-}
-
-.headlineImage {
-    background-size: cover;
-    width: auto;
-    height: 10rem;
-    background-position-y: 40%;
-}
-
-.singleArticle {
-    min-height: 5rem;
-    margin-bottom: 1rem;
-    margin-top: 2rem;
-    display: table;
-}
-
-.singleArticle .headlineImage {
-    height: 30rem;
+    border-bottom: solid 2px #FFAE03;
+    margin-bottom: 3rem;
 }
 
 .article_wrapper {
     display: block;
     height: calc(100% - 1rem);
-    min-height: 14rem;
+    min-height: 5rem;
     margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 2rem;
 }
 
-#articles .row .article {
-    color: black;
-}
-
-#articles .row a {
+.article_wrapper a, .article_wrapper a:hover {
+    color: #ffffff;
     text-decoration: none;
+}
+
+.article_wrapper h2 {
+    color: #FFAE03;
 }
 
 .sourceLinkListItem{
@@ -174,9 +66,28 @@ h1,h2,h3,h4 {
     padding-top: 0.2em;
 }
 
-#articles .row .sourceLink {
-    color: #990f3d;
+.sourceLink {
+    color: coral;
     text-decoration: none;
+}
+
+.regular_text {
+    color: #ffffff;
+    text_decoration: none;
+}
+
+.source {
+    display: block;
+}
+
+.source a, .source a:hover{
+    color: #FFAE03;
+    text-decoration: none;
+}
+
+h3 {
+    font-size: 1.5rem;
+    margin-top: 1.5rem;
 }
 
 .description {
@@ -185,9 +96,35 @@ h1,h2,h3,h4 {
 }
 
 #footer {
-    border-top: dotted 2px black;
+    border-top: solid 2px #FFAE03;
     width: 100%;
     height: 3rem;
     margin-bottom: 2rem;
     margin-top: 1rem;
+}
+
+@keyframes circle_animation {
+  0%   {background-color: #272727;}
+  25%   {background-color: red;}
+  75% {background-color: black;}
+  100%   {background-color: #272727;}
+}
+
+#circle {
+    width: 2rem;
+    height: 2rem;
+    background:red;
+    border-radius:50%;
+    -moz-border-radius:50%;
+    -webkit-border-radius:50%;
+    text-align:center;
+    color:white;
+    margin-left: 1rem;
+    display: inline-flex;
+    margin-bottom: 0.1rem;
+
+    animation-name: circle_animation;
+    animation-duration: 6s;
+    animation-iteration-count: infinite;
+    animation-direction: normal;
 }

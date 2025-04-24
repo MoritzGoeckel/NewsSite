@@ -2,8 +2,10 @@ package server
 
 import io.javalin.Javalin
 import io.javalin.http.ContentType
-import structures.Article
-import structures.Original
+import server.pages.ArticlePage
+import server.pages.ArticlesPage
+import server.pages.OriginalPage
+import server.pages.OriginalsPage
 import java.io.File
 import java.sql.Connection
 
@@ -19,6 +21,8 @@ class FrontendServer(val connection: Connection, val port: Int) {
         addFrontPage(app)
         addArticlesPage(app)
         addArticleEndpoint(app)
+        addOriginalsEndpoint(app)
+        addOriginalEndpoint(app)
         addStaticEndpoints(app)
 
         app.start(port)
@@ -44,10 +48,24 @@ class FrontendServer(val connection: Connection, val port: Int) {
 
     private fun addArticleEndpoint(app: Javalin) {
         app.get("article/{id}") {
-            val original = Original.getOriginal(it.pathParam("id"), connection)
-            val page = ArticlePage(articleFromOriginal(original))
+            val page = ArticlePage()
+            it.result(page.html(selectArticle(connection, it.pathParam("id").toInt())))
+                .contentType("text/html; charset=utf-8")
+        }
+    }
 
-            it.result(page.html())
+    private fun addOriginalEndpoint(app: Javalin) {
+        app.get("original/{id}") {
+            val page = OriginalPage()
+            it.result(page.html(connection, it.pathParam("id").toInt()))
+                .contentType("text/html; charset=utf-8")
+        }
+    }
+
+    private fun addOriginalsEndpoint(app: Javalin) {
+        app.get("/originals") {
+            val page = OriginalsPage()
+            it.result(page.html(connection))
                 .contentType("text/html; charset=utf-8")
         }
     }
